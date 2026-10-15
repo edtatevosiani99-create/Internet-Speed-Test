@@ -96,7 +96,7 @@ class MainActivity : Activity() {
         }
         header.addView(menuButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(8) })
         header.addView(TextView(this).apply {
-            text = "INTERNET SPEED TEST"; textSize = 20f; setTextColor(Color.WHITE)
+            text = tr("INTERNET SPEED TEST"); textSize = 20f; setTextColor(Color.WHITE)
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(0, -2, 1f))
         headerNetwork = TextView(this).apply {
@@ -114,7 +114,7 @@ class MainActivity : Activity() {
         header.addView(headerNetwork, LinearLayout.LayoutParams(dp(42), dp(42)))
         root.addView(header, LinearLayout.LayoutParams(-1, dp(46)))
         content.addView(TextView(this).apply {
-            text = "MEASURE YOUR CONNECTION"; textSize = 11f; letterSpacing = 0.18f
+            text = tr("MEASURE YOUR CONNECTION"); textSize = 11f; letterSpacing = 0.18f
             setTextColor(cyan); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(28)))
 
@@ -128,19 +128,19 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER; topMargin = dp(18); bottomMargin = dp(8)
         })
         status = TextView(this).apply {
-            text = "Ready to test"; textSize = 14f; setTextColor(Color.LTGRAY); gravity = Gravity.CENTER
+            text = tr("Ready to test"); textSize = 14f; setTextColor(Color.LTGRAY); gravity = Gravity.CENTER
         }
         content.addView(status, LinearLayout.LayoutParams(-1, dp(34)))
 
         val row1 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        pingValue = metric(row1, "PING", "—", "ms")
-        downloadValue = metric(row1, "DOWNLOAD", "—", "Mbps")
-        uploadValue = metric(row1, "UPLOAD", "—", "Mbps")
-        jitterValue = metric(row1, "JITTER", "—", "ms")
+        pingValue = metric(row1, tr("PING"), "—", "ms")
+        downloadValue = metric(row1, tr("DOWNLOAD"), "—", "Mbps")
+        uploadValue = metric(row1, tr("UPLOAD"), "—", "Mbps")
+        jitterValue = metric(row1, tr("JITTER"), "—", "ms")
         content.addView(row1, LinearLayout.LayoutParams(-1, dp(104)).apply { topMargin = dp(10) })
 
         startButton = Button(this).apply {
-            text = "START TEST"; textSize = 16f; typeface = Typeface.DEFAULT_BOLD; setTextColor(bg)
+            text = tr("START TEST"); textSize = 16f; typeface = Typeface.DEFAULT_BOLD; setTextColor(bg)
             background = android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = dp(16).toFloat(); setColor(cyan)
             }
@@ -148,7 +148,7 @@ class MainActivity : Activity() {
         }
         content.addView(startButton, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(20) })
         shareButton = Button(this).apply {
-            text = "SHARE RESULTS"; textSize = 14f; setTextColor(cyan); background = outlineBackground()
+            text = tr("SHARE RESULTS"); textSize = 14f; setTextColor(cyan); background = outlineBackground()
             isEnabled = lastResult.isNotBlank(); alpha = if (isEnabled) 1f else 0.55f
             setOnClickListener {
                 if (lastResult.isNotBlank()) {
@@ -172,7 +172,7 @@ class MainActivity : Activity() {
         }
         content.addView(historyText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
                 content.addView(TextView(this).apply {
-            text = "No ads • No account required"; textSize = 12f
+            text = tr("No ads • No account required"); textSize = 12f
             setTextColor(Color.rgb(125, 145, 170)); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(38)).apply { topMargin = dp(8) })
         scroll.addView(content)
@@ -198,7 +198,7 @@ class MainActivity : Activity() {
     }
 
     private fun runTest() {
-        startButton.isEnabled = false; startButton.text = "TESTING..."
+        startButton.isEnabled = false; startButton.text = tr("TESTING...")
         shareButton.isEnabled = false
         status.text = "Checking latency (1/5)..."
         pingValue.text = "…"; downloadValue.text = "…"; uploadValue.text = "…"
@@ -271,12 +271,12 @@ class MainActivity : Activity() {
                     prefs.edit().putString("history", updated).apply()
                     refreshHistory()
                     shareButton.isEnabled = true; shareButton.alpha = 1f
-                    startButton.isEnabled = true; startButton.text = "TEST AGAIN"
+                    startButton.isEnabled = true; startButton.text = tr("TEST AGAIN")
                 }
             } catch (e: Exception) {
                 runOnUiThread {
                     status.text = "Test failed. Check internet and try again."
-                    startButton.isEnabled = true; startButton.text = "TRY AGAIN"
+                    startButton.isEnabled = true; startButton.text = tr("TRY AGAIN")
                     shareButton.isEnabled = lastResult.isNotBlank()
                     Toast.makeText(this, e.localizedMessage ?: "Connection error", Toast.LENGTH_LONG).show()
                 }
@@ -307,6 +307,21 @@ class MainActivity : Activity() {
         menu.show()
     }
 
+
+    private fun tr(text: String): String {
+        val lang = prefs.getString("language", "en") ?: "en"
+        val dict = mapOf(
+            "ru" to mapOf("INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
+            "ka" to mapOf("INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
+            "de" to mapOf("INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
+            "es" to mapOf("INTERNET SPEED TEST" to "VELOCIDAD DE INTERNET", "MEASURE YOUR CONNECTION" to "MIDE TU CONEXIÓN", "Ready to test" to "Listo para probar", "DOWNLOAD" to "DESCARGA", "UPLOAD" to "SUBIDA", "START TEST" to "INICIAR PRUEBA", "TEST AGAIN" to "REPETIR PRUEBA", "SHARE RESULTS" to "COMPARTIR RESULTADOS", "RECENT TESTS" to "PRUEBAS RECIENTES"),
+            "fr" to mapOf("INTERNET SPEED TEST" to "TEST DE VITESSE INTERNET", "MEASURE YOUR CONNECTION" to "MESUREZ VOTRE CONNEXION", "Ready to test" to "Prêt à tester", "DOWNLOAD" to "TÉLÉCHARGEMENT", "UPLOAD" to "ENVOI", "START TEST" to "LANCER LE TEST", "TEST AGAIN" to "REFAIRE LE TEST", "SHARE RESULTS" to "PARTAGER LES RÉSULTATS", "RECENT TESTS" to "TESTS RÉCENTS"),
+            "it" to mapOf("INTERNET SPEED TEST" to "TEST VELOCITÀ INTERNET", "MEASURE YOUR CONNECTION" to "MISURA LA CONNESSIONE", "Ready to test" to "Pronto per il test", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "AVVIA TEST", "TEST AGAIN" to "RIPETI TEST", "SHARE RESULTS" to "CONDIVIDI RISULTATI", "RECENT TESTS" to "TEST RECENTI"),
+            "tr" to mapOf("INTERNET SPEED TEST" to "İNTERNET HIZ TESTİ", "MEASURE YOUR CONNECTION" to "BAĞLANTI HIZINI ÖLÇ", "Ready to test" to "Teste hazır", "DOWNLOAD" to "İNDİRME", "UPLOAD" to "YÜKLEME", "START TEST" to "TESTİ BAŞLAT", "TEST AGAIN" to "TEKRAR TEST ET", "SHARE RESULTS" to "SONUÇLARI PAYLAŞ", "RECENT TESTS" to "SON TESTLER"),
+            "uk" to mapOf("INTERNET SPEED TEST" to "ТЕСТ ШВИДКОСТІ ІНТЕРНЕТУ", "MEASURE YOUR CONNECTION" to "ВИМІРЮЙТЕ З’ЄДНАННЯ", "Ready to test" to "Готово до тесту", "DOWNLOAD" to "ЗАВАНТАЖЕННЯ", "UPLOAD" to "ВІДДАВАННЯ", "START TEST" to "ПОЧАТИ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТИ ТЕСТ", "SHARE RESULTS" to "ПОДІЛИТИСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ОСТАННІ ТЕСТИ")
+        )
+        return dict[lang]?.get(text) ?: text
+    }
 
     private fun showLanguageDialog() {
         val names = arrayOf("English", "Русский", "ქართული", "Deutsch", "Español", "Français", "Italiano", "Türkçe", "Українська")
