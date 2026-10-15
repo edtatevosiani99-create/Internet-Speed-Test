@@ -171,17 +171,6 @@ class MainActivity : Activity() {
             textSize = 13f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
         }
-        addSectionTitle(content, "DATA USAGE")
-        trafficUsageText = TextView(this).apply {
-            textSize = 13f
-            setTextColor(Color.rgb(205, 220, 238))
-            setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = panelBackground()
-            setOnClickListener { if (hasUsageAccess()) showTrafficHistoryDialog() else openUsageAccessSettings() }
-        }
-        content.addView(trafficUsageText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        refreshTrafficUsage()
-
         addSectionTitle(content, "RECENT TESTS")
         historyText = TextView(this).apply {
             textSize = 12f; setTextColor(Color.rgb(205, 220, 238))
@@ -304,12 +293,17 @@ class MainActivity : Activity() {
     private fun showAppMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         menu.menu.add(0, 1, 0, "🕘  History")
-        menu.menu.add(0, 2, 1, "ℹ️  About app")
-        menu.menu.add(0, 3, 2, "✨  No Ads")
-        menu.menu.add(0, 4, 3, "🌐  Language")
+        menu.menu.add(0, 5, 1, "📊  Traffic")
+        menu.menu.add(0, 2, 2, "ℹ️  About app")
+        menu.menu.add(0, 3, 3, "✨  No Ads")
+        menu.menu.add(0, 4, 4, "🌐  Language")
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> showHistoryDialog()
+                5 -> {
+                    if (hasUsageAccess()) startActivity(Intent(this, TrafficActivity::class.java))
+                    else openUsageAccessSettings()
+                }
                 2 -> AlertDialog.Builder(this)
                     .setTitle("Internet Speed Test")
                     .setMessage("Test download, upload, ping and jitter. View connection details and recent test history.\n\nVersion 1.0")
