@@ -59,11 +59,17 @@ class MainActivity : Activity() {
     }
 
     private fun buildScreen() {
-        val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding(dp(20), dp(22), dp(20), dp(24))
+            setBackgroundColor(bg)
+        }
+        val scroll = ScrollView(this).apply { setBackgroundColor(bg); isFillViewport = true }
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(0, 0, 0, dp(8))
             setBackgroundColor(bg)
         }
         // Respect system-bar insets so the app content starts below Android's notification/status bar.
@@ -107,12 +113,12 @@ class MainActivity : Activity() {
         }
         header.addView(headerNetwork, LinearLayout.LayoutParams(dp(42), dp(42)))
         root.addView(header, LinearLayout.LayoutParams(-1, dp(46)))
-        root.addView(TextView(this).apply {
+        content.addView(TextView(this).apply {
             text = "MEASURE YOUR CONNECTION"; textSize = 11f; letterSpacing = 0.18f
             setTextColor(cyan); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(28)))
 
-        root.addView(TextView(this).apply {
+        content.addView(TextView(this).apply {
             text = "↯"; textSize = 58f; setTextColor(cyan); gravity = Gravity.CENTER
             background = android.graphics.drawable.GradientDrawable().apply {
                 shape = android.graphics.drawable.GradientDrawable.OVAL
@@ -124,14 +130,14 @@ class MainActivity : Activity() {
         status = TextView(this).apply {
             text = "Ready to test"; textSize = 14f; setTextColor(Color.LTGRAY); gravity = Gravity.CENTER
         }
-        root.addView(status, LinearLayout.LayoutParams(-1, dp(34)))
+        content.addView(status, LinearLayout.LayoutParams(-1, dp(34)))
 
         val row1 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
         pingValue = metric(row1, "PING", "—", "ms")
         downloadValue = metric(row1, "DOWNLOAD", "—", "Mbps")
         uploadValue = metric(row1, "UPLOAD", "—", "Mbps")
         jitterValue = metric(row1, "JITTER", "—", "ms")
-        root.addView(row1, LinearLayout.LayoutParams(-1, dp(104)).apply { topMargin = dp(10) })
+        content.addView(row1, LinearLayout.LayoutParams(-1, dp(104)).apply { topMargin = dp(10) })
 
         startButton = Button(this).apply {
             text = "START TEST"; textSize = 16f; typeface = Typeface.DEFAULT_BOLD; setTextColor(bg)
@@ -140,7 +146,7 @@ class MainActivity : Activity() {
             }
             setOnClickListener { runTest() }
         }
-        root.addView(startButton, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(20) })
+        content.addView(startButton, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(20) })
         shareButton = Button(this).apply {
             text = "SHARE RESULTS"; textSize = 14f; setTextColor(cyan); background = outlineBackground()
             isEnabled = lastResult.isNotBlank(); alpha = if (isEnabled) 1f else 0.55f
@@ -153,32 +159,25 @@ class MainActivity : Activity() {
                 }
             }
         }
-        root.addView(shareButton, LinearLayout.LayoutParams(-1, dp(50)).apply { topMargin = dp(8) })
+        content.addView(shareButton, LinearLayout.LayoutParams(-1, dp(50)).apply { topMargin = dp(8) })
 
         networkInfo = TextView(this).apply {
             textSize = 13f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
         }
-        addSectionTitle(root, "RECENT TESTS")
+        addSectionTitle(content, "RECENT TESTS")
         historyText = TextView(this).apply {
             textSize = 12f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
         }
-        root.addView(historyText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        root.addView(Button(this).apply {
-            text = "CLEAR HISTORY"; textSize = 12f; setTextColor(cyan); background = outlineBackground()
-            setOnClickListener {
-                prefs.edit().remove("history").apply()
-                refreshHistory()
-                Toast.makeText(this@MainActivity, "History cleared", Toast.LENGTH_SHORT).show()
-            }
-        }, LinearLayout.LayoutParams(-1, dp(44)).apply { topMargin = dp(6) })
-        root.addView(TextView(this).apply {
+        content.addView(historyText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+                content.addView(TextView(this).apply {
             text = "No ads • No account required"; textSize = 12f
             setTextColor(Color.rgb(125, 145, 170)); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(38)).apply { topMargin = dp(8) })
-        scroll.addView(root)
-        setContentView(scroll)
+        scroll.addView(content)
+        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        setContentView(root)
     }
 
     private fun metric(parent: LinearLayout, label: String, initial: String, unit: String): TextView {
@@ -290,6 +289,7 @@ class MainActivity : Activity() {
         menu.menu.add(0, 1, 0, "🕘  History")
         menu.menu.add(0, 2, 1, "ℹ️  About app")
         menu.menu.add(0, 3, 2, "✨  No Ads")
+        menu.menu.add(0, 4, 3, "🌐  Language")
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> showHistoryDialog()
@@ -299,6 +299,7 @@ class MainActivity : Activity() {
                     .setPositiveButton("OK", null)
                     .show()
                 3 -> showNoAdsDialog()
+                4 -> showLanguageDialog()
                 else -> return@setOnMenuItemClickListener false
             }
             true
@@ -306,6 +307,20 @@ class MainActivity : Activity() {
         menu.show()
     }
 
+
+    private fun showLanguageDialog() {
+        val names = arrayOf("English", "Русский", "ქართული", "Deutsch", "Español", "Français", "Italiano", "Türkçe", "Українська")
+        val codes = arrayOf("en", "ru", "ka", "de", "es", "fr", "it", "tr", "uk")
+        val current = prefs.getString("language", "en") ?: "en"
+        AlertDialog.Builder(this).setTitle("Language")
+            .setSingleChoiceItems(names, codes.indexOf(current).coerceAtLeast(0)) { dialog, which ->
+                prefs.edit().putString("language", codes[which]).apply()
+                dialog.dismiss()
+                buildScreen()
+                refreshNetworkInfo()
+                refreshHistory()
+            }.setNegativeButton("Close", null).show()
+    }
 
     private fun showNoAdsDialog() {
         val content = LinearLayout(this).apply {
