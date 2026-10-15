@@ -261,7 +261,7 @@ class MainActivity : Activity() {
                 val upMbps = if (upSeconds > 0) payload.size * 8.0 / upSeconds / 1_000_000.0 else 0.0
                 val downText = String.format(java.util.Locale.US, "%.1f", downMbps)
                 val upText = if (response in 200..299) String.format(java.util.Locale.US, "%.1f", upMbps) else "N/A"
-                val result = "Internet Speed Test\nPing: ${ping.roundToInt()} ms\nJitter: ${jitter.roundToInt()} ms\nDownload: ${downText} Mbps\nUpload: ${upText} Mbps"
+                val result = "INTERNET SPEED TEST\n${tr("Ping: ")}${ping.roundToInt()} ms\n${tr("Jitter: ")}${jitter.roundToInt()} ms\n${tr("Download: ")}${downText} Mbps\n${tr("Upload: ")}${upText} Mbps"
                 val date = java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
                 runOnUiThread {
                     pingValue.text = ping.roundToInt().toString()
@@ -271,7 +271,7 @@ class MainActivity : Activity() {
                     lastResult = result
                     prefs.edit().putString("last_result", result).apply()
                     refreshNetworkInfo()
-                    val historyLine = "$date  •  ↓$downText Mbps  ↑$upText Mbps  •  Ping ${ping.roundToInt()} ms  •  Jitter ${jitter.roundToInt()} ms  •  $currentNetworkLabel"
+                    val historyLine = "$date  •  ↓$downText Mbps  ↑$upText Mbps  •  ${tr("Ping: ")}${ping.roundToInt()} ms  •  ${tr("Jitter: ")}${jitter.roundToInt()} ms  •  $currentNetworkLabel"
                     val history = prefs.getString("history", "") ?: ""
                     val updated = (listOf(historyLine) + history.split("\n").filter { it.isNotBlank() }).joinToString("\n")
                     prefs.edit().putString("history", updated).apply()
@@ -319,9 +319,9 @@ class MainActivity : Activity() {
     private fun tr(text: String): String {
         val lang = prefs.getString("language", "en") ?: "en"
         val dict = mapOf(
-            "ru" to mapOf("Traffic" to "Трафик", "DATA USAGE" to "РАСХОД ТРАФИКА", "TODAY" to "СЕГОДНЯ", "THIS MONTH" to "ЗА МЕСЯЦ", "Wi-Fi" to "Wi-Fi", "Mobile data" to "Мобильный интернет", "Tap to refresh traffic statistics" to "Нажмите, чтобы обновить статистику", "Tap to view traffic history" to "Нажмите, чтобы открыть историю трафика", "Traffic history" to "История трафика", "DAILY HISTORY" to "ИСТОРИЯ ПО ДНЯМ", "MONTHLY HISTORY" to "ИСТОРИЯ ПО МЕСЯЦАМ", "History starts after Usage access is enabled." to "История начнётся после разрешения доступа к статистике.", "History is saved on this phone and cannot be deleted from the app." to "История сохраняется на телефоне, удалить её из приложения нельзя.", "Refresh" to "Обновить", "Close" to "Закрыть", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Учитывайте весь трафик телефона отдельно для Wi-Fi и мобильной сети. Нажмите, чтобы разрешить доступ к статистике.", "Loading traffic statistics…" to "Загрузка статистики трафика…", "Unavailable" to "Недоступно", "Traffic statistics refreshed" to "Статистика трафика обновлена", "Open Android Settings and allow Usage access" to "Откройте настройки Android и разрешите доступ к статистике", "INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
-            "ka" to mapOf("DATA USAGE" to "ტრაფიკის გამოყენება", "TODAY" to "დღეს", "THIS MONTH" to "ამ თვეში", "Wi-Fi" to "Wi-Fi", "Mobile data" to "მობილური ინტერნეტი", "Tap to refresh traffic statistics" to "შეეხეთ სტატისტიკის განახლებას", "Tap to view traffic history" to "შეეხეთ ტრაფიკის ისტორიის სანახავად", "Traffic history" to "ტრაფიკის ისტორია", "DAILY HISTORY" to "დღიური ისტორია", "MONTHLY HISTORY" to "თვიური ისტორია", "History starts after Usage access is enabled." to "ისტორია დაიწყება სტატისტიკაზე წვდომის ჩართვის შემდეგ.", "History is saved on this phone and cannot be deleted from the app." to "ისტორია ტელეფონში ინახება და აპიდან ვერ წაიშლება.", "Refresh" to "განახლება", "Close" to "დახურვა", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "ტელეფონის მთელი ტრაფიკის აღრიცხვა Wi-Fi-სა და მობილურ ინტერნეტზე ცალ-ცალკე. შეეხეთ სტატისტიკაზე წვდომის დასაშვებად.", "Loading traffic statistics…" to "ტრაფიკის სტატისტიკის ჩატვირთვა…", "Unavailable" to "მიუწვდომელია", "Traffic statistics refreshed" to "ტრაფიკის სტატისტიკა განახლდა", "Open Android Settings and allow Usage access" to "გახსენით Android-ის პარამეტრები და დაუშვით სტატისტიკაზე წვდომა", "INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
-            "de" to mapOf("DATA USAGE" to "DATENVERBRAUCH", "TODAY" to "HEUTE", "THIS MONTH" to "DIESEN MONAT", "Wi-Fi" to "WLAN", "Mobile data" to "Mobile Daten", "Tap to refresh traffic statistics" to "Tippen, um die Statistik zu aktualisieren", "Tap to view traffic history" to "Tippen, um den Datenverlauf zu öffnen", "Traffic history" to "Datenverlauf", "DAILY HISTORY" to "TAGESVERLAUF", "MONTHLY HISTORY" to "MONATSVERLAUF", "History starts after Usage access is enabled." to "Der Verlauf beginnt, sobald der Statistikzugriff erlaubt ist.", "History is saved on this phone and cannot be deleted from the app." to "Der Verlauf wird auf diesem Telefon gespeichert und kann nicht in der App gelöscht werden.", "Refresh" to "Aktualisieren", "Close" to "Schließen", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Gesamten Datenverbrauch getrennt für WLAN und mobile Daten erfassen. Tippen, um den Zugriff zu erlauben.", "Loading traffic statistics…" to "Datenstatistik wird geladen…", "Unavailable" to "Nicht verfügbar", "Traffic statistics refreshed" to "Datenstatistik aktualisiert", "Open Android Settings and allow Usage access" to "Öffne die Android-Einstellungen und erlaube den Nutzungszugriff", "INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
+            "ru" to mapOf("Traffic" to "Трафик", "DATA USAGE" to "РАСХОД ТРАФИКА", "TODAY" to "СЕГОДНЯ", "THIS MONTH" to "ЗА МЕСЯЦ", "Wi-Fi" to "Wi-Fi", tr("Mobile data") to "Мобильный интернет", "Tap to refresh traffic statistics" to "Нажмите, чтобы обновить статистику", "Tap to view traffic history" to "Нажмите, чтобы открыть историю трафика", "Traffic history" to "История трафика", "DAILY HISTORY" to "ИСТОРИЯ ПО ДНЯМ", "MONTHLY HISTORY" to "ИСТОРИЯ ПО МЕСЯЦАМ", "History starts after Usage access is enabled." to "История начнётся после разрешения доступа к статистике.", "History is saved on this phone and cannot be deleted from the app." to "История сохраняется на телефоне, удалить её из приложения нельзя.", "Refresh" to "Обновить", "Close" to "Закрыть", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Учитывайте весь трафик телефона отдельно для Wi-Fi и мобильной сети. Нажмите, чтобы разрешить доступ к статистике.", "Loading traffic statistics…" to "Загрузка статистики трафика…", "Unavailable" to "Недоступно", "Traffic statistics refreshed" to "Статистика трафика обновлена", "Open Android Settings and allow Usage access" to "Откройте настройки Android и разрешите доступ к статистике", "INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
+            "ka" to mapOf("DATA USAGE" to "ტრაფიკის გამოყენება", "TODAY" to "დღეს", "THIS MONTH" to "ამ თვეში", "Wi-Fi" to "Wi-Fi", tr("Mobile data") to "მობილური ინტერნეტი", "Tap to refresh traffic statistics" to "შეეხეთ სტატისტიკის განახლებას", "Tap to view traffic history" to "შეეხეთ ტრაფიკის ისტორიის სანახავად", "Traffic history" to "ტრაფიკის ისტორია", "DAILY HISTORY" to "დღიური ისტორია", "MONTHLY HISTORY" to "თვიური ისტორია", "History starts after Usage access is enabled." to "ისტორია დაიწყება სტატისტიკაზე წვდომის ჩართვის შემდეგ.", "History is saved on this phone and cannot be deleted from the app." to "ისტორია ტელეფონში ინახება და აპიდან ვერ წაიშლება.", "Refresh" to "განახლება", "Close" to "დახურვა", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "ტელეფონის მთელი ტრაფიკის აღრიცხვა Wi-Fi-სა და მობილურ ინტერნეტზე ცალ-ცალკე. შეეხეთ სტატისტიკაზე წვდომის დასაშვებად.", "Loading traffic statistics…" to "ტრაფიკის სტატისტიკის ჩატვირთვა…", "Unavailable" to "მიუწვდომელია", "Traffic statistics refreshed" to "ტრაფიკის სტატისტიკა განახლდა", "Open Android Settings and allow Usage access" to "გახსენით Android-ის პარამეტრები და დაუშვით სტატისტიკაზე წვდომა", "INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
+            "de" to mapOf("DATA USAGE" to "DATENVERBRAUCH", "TODAY" to "HEUTE", "THIS MONTH" to "DIESEN MONAT", "Wi-Fi" to "WLAN", tr("Mobile data") to "Mobile Daten", "Tap to refresh traffic statistics" to "Tippen, um die Statistik zu aktualisieren", "Tap to view traffic history" to "Tippen, um den Datenverlauf zu öffnen", "Traffic history" to "Datenverlauf", "DAILY HISTORY" to "TAGESVERLAUF", "MONTHLY HISTORY" to "MONATSVERLAUF", "History starts after Usage access is enabled." to "Der Verlauf beginnt, sobald der Statistikzugriff erlaubt ist.", "History is saved on this phone and cannot be deleted from the app." to "Der Verlauf wird auf diesem Telefon gespeichert und kann nicht in der App gelöscht werden.", "Refresh" to "Aktualisieren", "Close" to "Schließen", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Gesamten Datenverbrauch getrennt für WLAN und mobile Daten erfassen. Tippen, um den Zugriff zu erlauben.", "Loading traffic statistics…" to "Datenstatistik wird geladen…", "Unavailable" to "Nicht verfügbar", "Traffic statistics refreshed" to "Datenstatistik aktualisiert", "Open Android Settings and allow Usage access" to "Öffne die Android-Einstellungen und erlaube den Nutzungszugriff", "INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
             "es" to mapOf("INTERNET SPEED TEST" to "VELOCIDAD DE INTERNET", "MEASURE YOUR CONNECTION" to "MIDE TU CONEXIÓN", "Ready to test" to "Listo para probar", "DOWNLOAD" to "DESCARGA", "UPLOAD" to "SUBIDA", "START TEST" to "INICIAR PRUEBA", "TEST AGAIN" to "REPETIR PRUEBA", "SHARE RESULTS" to "COMPARTIR RESULTADOS", "RECENT TESTS" to "PRUEBAS RECIENTES"),
             "fr" to mapOf("INTERNET SPEED TEST" to "TEST DE VITESSE INTERNET", "MEASURE YOUR CONNECTION" to "MESUREZ VOTRE CONNEXION", "Ready to test" to "Prêt à tester", "DOWNLOAD" to "TÉLÉCHARGEMENT", "UPLOAD" to "ENVOI", "START TEST" to "LANCER LE TEST", "TEST AGAIN" to "REFAIRE LE TEST", "SHARE RESULTS" to "PARTAGER LES RÉSULTATS", "RECENT TESTS" to "TESTS RÉCENTS"),
             "it" to mapOf("INTERNET SPEED TEST" to "TEST VELOCITÀ INTERNET", "MEASURE YOUR CONNECTION" to "MISURA LA CONNESSIONE", "Ready to test" to "Pronto per il test", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "AVVIA TEST", "TEST AGAIN" to "RIPETI TEST", "SHARE RESULTS" to "CONDIVIDI RISULTATI", "RECENT TESTS" to "TEST RECENTI"),
@@ -347,13 +347,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "Измерение скорости загрузки", "Measuring upload" to "Измерение скорости отдачи",
                 "Test complete" to "Проверка завершена", "Test failed. Check internet and try again." to "Не удалось выполнить тест. Проверьте интернет и попробуйте снова.",
                 "Connection error" to "Ошибка соединения", "Share speed test results" to "Поделиться результатами теста",
-                "Offline / no active connection" to "Нет активного соединения", "Mobile data" to "Мобильный интернет",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Подключённая сеть",
+                tr("Offline / no active connection") to "Нет активного соединения", tr("Mobile data") to "Мобильный интернет",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Подключённая сеть",
                 "Metered connection: Yes" to "Лимитное соединение: да", "Metered connection: No" to "Лимитное соединение: нет",
                 "Wi-Fi name: " to "Имя Wi-Fi: ", "Operator: " to "Оператор: ", "Network type: " to "Тип сети: ",
-                "Network name/operator details unavailable or permission not granted." to "Имя сети или сведения об операторе недоступны либо нет разрешения.",
-                "Connection: " to "Соединение: ", "Offline" to "Нет соединения", "Wi-Fi (name unavailable)" to "Wi-Fi (имя недоступно)",
-                "Mobile data (network details unavailable)" to "Мобильная сеть (сведения недоступны)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Имя сети или сведения об операторе недоступны либо нет разрешения.",
+                "Connection: " to "Соединение: ", "Offline" to "Нет соединения", tr("Wi-Fi (name unavailable)") to "Wi-Fi (имя недоступно)",
+                tr("Mobile data (network details unavailable)") to "Мобильная сеть (сведения недоступны)",
                 "Ping: " to "Пинг: ", "Jitter: " to "Джиттер: ", "Download: " to "Загрузка: ", "Upload: " to "Отдача: "
             ),
             "ka" to mapOf(
@@ -372,13 +372,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "ჩამოტვირთვის სიჩქარის გაზომვა", "Measuring upload" to "ატვირთვის სიჩქარის გაზომვა",
                 "Test complete" to "ტესტი დასრულდა", "Test failed. Check internet and try again." to "ტესტი ვერ შესრულდა. შეამოწმეთ ინტერნეტი და სცადეთ თავიდან.",
                 "Connection error" to "კავშირის შეცდომა", "Share speed test results" to "ტესტის შედეგების გაზიარება",
-                "Offline / no active connection" to "აქტიური კავშირი არ არის", "Mobile data" to "მობილური ინტერნეტი",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "დაკავშირებული ქსელი",
+                tr("Offline / no active connection") to "აქტიური კავშირი არ არის", tr("Mobile data") to "მობილური ინტერნეტი",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "დაკავშირებული ქსელი",
                 "Metered connection: Yes" to "ლიმიტირებული კავშირი: დიახ", "Metered connection: No" to "ლიმიტირებული კავშირი: არა",
                 "Wi-Fi name: " to "Wi-Fi-ის სახელი: ", "Operator: " to "ოპერატორი: ", "Network type: " to "ქსელის ტიპი: ",
-                "Network name/operator details unavailable or permission not granted." to "ქსელის სახელი ან ოპერატორის დეტალები მიუწვდომელია ან ნებართვა არ არის გაცემული.",
-                "Connection: " to "კავშირი: ", "Offline" to "კავშირი არ არის", "Wi-Fi (name unavailable)" to "Wi-Fi (სახელი მიუწვდომელია)",
-                "Mobile data (network details unavailable)" to "მობილური ქსელი (დეტალები მიუწვდომელია)",
+                tr("Network name/operator details unavailable or permission not granted.") to "ქსელის სახელი ან ოპერატორის დეტალები მიუწვდომელია ან ნებართვა არ არის გაცემული.",
+                "Connection: " to "კავშირი: ", "Offline" to "კავშირი არ არის", tr("Wi-Fi (name unavailable)") to "Wi-Fi (სახელი მიუწვდომელია)",
+                tr("Mobile data (network details unavailable)") to "მობილური ქსელი (დეტალები მიუწვდომელია)",
                 "Ping: " to "პინგი: ", "Jitter: " to "ჯიტერი: ", "Download: " to "ჩამოტვირთვა: ", "Upload: " to "ატვირთვა: "
             ),
             "de" to mapOf(
@@ -395,13 +395,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "Downloadgeschwindigkeit wird gemessen", "Measuring upload" to "Uploadgeschwindigkeit wird gemessen",
                 "Test complete" to "Test abgeschlossen", "Test failed. Check internet and try again." to "Test fehlgeschlagen. Prüfen Sie die Internetverbindung und versuchen Sie es erneut.",
                 "Connection error" to "Verbindungsfehler", "Share speed test results" to "Testergebnisse teilen",
-                "Offline / no active connection" to "Offline / keine aktive Verbindung", "Mobile data" to "Mobile Daten",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Verbundenes Netzwerk",
+                tr("Offline / no active connection") to "Offline / keine aktive Verbindung", tr("Mobile data") to "Mobile Daten",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Verbundenes Netzwerk",
                 "Metered connection: Yes" to "Getaktete Verbindung: Ja", "Metered connection: No" to "Getaktete Verbindung: Nein",
                 "Wi-Fi name: " to "WLAN-Name: ", "Operator: " to "Anbieter: ", "Network type: " to "Netzwerktyp: ",
-                "Network name/operator details unavailable or permission not granted." to "Netzwerkname oder Anbieterdetails nicht verfügbar oder Berechtigung fehlt.",
-                "Connection: " to "Verbindung: ", "Offline" to "Offline", "Wi-Fi (name unavailable)" to "WLAN (Name nicht verfügbar)",
-                "Mobile data (network details unavailable)" to "Mobile Daten (Netzwerkdetails nicht verfügbar)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Netzwerkname oder Anbieterdetails nicht verfügbar oder Berechtigung fehlt.",
+                "Connection: " to "Verbindung: ", "Offline" to "Offline", tr("Wi-Fi (name unavailable)") to "WLAN (Name nicht verfügbar)",
+                tr("Mobile data (network details unavailable)") to "Mobile Daten (Netzwerkdetails nicht verfügbar)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Download: ", "Upload: " to "Upload: "
             ),
             "es" to mapOf(
@@ -418,13 +418,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "Midiendo la descarga", "Measuring upload" to "Midiendo la subida",
                 "Test complete" to "Prueba completada", "Test failed. Check internet and try again." to "La prueba ha fallado. Comprueba internet e inténtalo de nuevo.",
                 "Connection error" to "Error de conexión", "Share speed test results" to "Compartir resultados",
-                "Offline / no active connection" to "Sin conexión activa", "Mobile data" to "Datos móviles",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Red conectada",
+                tr("Offline / no active connection") to "Sin conexión activa", tr("Mobile data") to "Datos móviles",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Red conectada",
                 "Metered connection: Yes" to "Conexión de uso medido: Sí", "Metered connection: No" to "Conexión de uso medido: No",
                 "Wi-Fi name: " to "Nombre de Wi-Fi: ", "Operator: " to "Operador: ", "Network type: " to "Tipo de red: ",
-                "Network name/operator details unavailable or permission not granted." to "Nombre de red o datos del operador no disponibles o permiso no concedido.",
-                "Connection: " to "Conexión: ", "Offline" to "Sin conexión", "Wi-Fi (name unavailable)" to "Wi-Fi (nombre no disponible)",
-                "Mobile data (network details unavailable)" to "Datos móviles (detalles no disponibles)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Nombre de red o datos del operador no disponibles o permiso no concedido.",
+                "Connection: " to "Conexión: ", "Offline" to "Sin conexión", tr("Wi-Fi (name unavailable)") to "Wi-Fi (nombre no disponible)",
+                tr("Mobile data (network details unavailable)") to "Datos móviles (detalles no disponibles)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Descarga: ", "Upload: " to "Subida: "
             ),
             "fr" to mapOf(
@@ -441,13 +441,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "Mesure du téléchargement", "Measuring upload" to "Mesure de l’envoi",
                 "Test complete" to "Test terminé", "Test failed. Check internet and try again." to "Échec du test. Vérifiez Internet et réessayez.",
                 "Connection error" to "Erreur de connexion", "Share speed test results" to "Partager les résultats",
-                "Offline / no active connection" to "Hors ligne / aucune connexion active", "Mobile data" to "Données mobiles",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Réseau connecté",
+                tr("Offline / no active connection") to "Hors ligne / aucune connexion active", tr("Mobile data") to "Données mobiles",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Réseau connecté",
                 "Metered connection: Yes" to "Connexion limitée : oui", "Metered connection: No" to "Connexion limitée : non",
                 "Wi-Fi name: " to "Nom du Wi-Fi : ", "Operator: " to "Opérateur : ", "Network type: " to "Type de réseau : ",
-                "Network name/operator details unavailable or permission not granted." to "Nom du réseau ou détails opérateur indisponibles, ou autorisation refusée.",
-                "Connection: " to "Connexion : ", "Offline" to "Hors ligne", "Wi-Fi (name unavailable)" to "Wi-Fi (nom indisponible)",
-                "Mobile data (network details unavailable)" to "Données mobiles (détails indisponibles)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Nom du réseau ou détails opérateur indisponibles, ou autorisation refusée.",
+                "Connection: " to "Connexion : ", "Offline" to "Hors ligne", tr("Wi-Fi (name unavailable)") to "Wi-Fi (nom indisponible)",
+                tr("Mobile data (network details unavailable)") to "Données mobiles (détails indisponibles)",
                 "Ping: " to "Ping : ", "Jitter: " to "Gigue : ", "Download: " to "Téléchargement : ", "Upload: " to "Envoi : "
             ),
             "it" to mapOf(
@@ -464,13 +464,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "Misurazione download", "Measuring upload" to "Misurazione upload",
                 "Test complete" to "Test completato", "Test failed. Check internet and try again." to "Test non riuscito. Controlla Internet e riprova.",
                 "Connection error" to "Errore di connessione", "Share speed test results" to "Condividi i risultati",
-                "Offline / no active connection" to "Offline / nessuna connessione attiva", "Mobile data" to "Dati mobili",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Rete connessa",
+                tr("Offline / no active connection") to "Offline / nessuna connessione attiva", tr("Mobile data") to "Dati mobili",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Rete connessa",
                 "Metered connection: Yes" to "Connessione a consumo: sì", "Metered connection: No" to "Connessione a consumo: no",
                 "Wi-Fi name: " to "Nome Wi-Fi: ", "Operator: " to "Operatore: ", "Network type: " to "Tipo di rete: ",
-                "Network name/operator details unavailable or permission not granted." to "Nome rete o dettagli operatore non disponibili oppure autorizzazione non concessa.",
-                "Connection: " to "Connessione: ", "Offline" to "Offline", "Wi-Fi (name unavailable)" to "Wi-Fi (nome non disponibile)",
-                "Mobile data (network details unavailable)" to "Dati mobili (dettagli rete non disponibili)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Nome rete o dettagli operatore non disponibili oppure autorizzazione non concessa.",
+                "Connection: " to "Connessione: ", "Offline" to "Offline", tr("Wi-Fi (name unavailable)") to "Wi-Fi (nome non disponibile)",
+                tr("Mobile data (network details unavailable)") to "Dati mobili (dettagli rete non disponibili)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Download: ", "Upload: " to "Upload: "
             ),
             "tr" to mapOf(
@@ -487,13 +487,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "İndirme hızı ölçülüyor", "Measuring upload" to "Yükleme hızı ölçülüyor",
                 "Test complete" to "Test tamamlandı", "Test failed. Check internet and try again." to "Test başarısız. İnterneti kontrol edip tekrar deneyin.",
                 "Connection error" to "Bağlantı hatası", "Share speed test results" to "Test sonuçlarını paylaş",
-                "Offline / no active connection" to "Çevrimdışı / etkin bağlantı yok", "Mobile data" to "Mobil veri",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Bağlı ağ",
+                tr("Offline / no active connection") to "Çevrimdışı / etkin bağlantı yok", tr("Mobile data") to "Mobil veri",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Bağlı ağ",
                 "Metered connection: Yes" to "Kotalı bağlantı: Evet", "Metered connection: No" to "Kotalı bağlantı: Hayır",
                 "Wi-Fi name: " to "Wi-Fi adı: ", "Operator: " to "Operatör: ", "Network type: " to "Ağ türü: ",
-                "Network name/operator details unavailable or permission not granted." to "Ağ adı veya operatör bilgileri kullanılamıyor ya da izin verilmedi.",
-                "Connection: " to "Bağlantı: ", "Offline" to "Çevrimdışı", "Wi-Fi (name unavailable)" to "Wi-Fi (ad kullanılamıyor)",
-                "Mobile data (network details unavailable)" to "Mobil veri (ağ ayrıntıları yok)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Ağ adı veya operatör bilgileri kullanılamıyor ya da izin verilmedi.",
+                "Connection: " to "Bağlantı: ", "Offline" to "Çevrimdışı", tr("Wi-Fi (name unavailable)") to "Wi-Fi (ad kullanılamıyor)",
+                tr("Mobile data (network details unavailable)") to "Mobil veri (ağ ayrıntıları yok)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "İndirme: ", "Upload: " to "Yükleme: "
             ),
             "uk" to mapOf(
@@ -510,13 +510,13 @@ class MainActivity : Activity() {
                 "Measuring download" to "Вимірювання завантаження", "Measuring upload" to "Вимірювання передавання",
                 "Test complete" to "Тест завершено", "Test failed. Check internet and try again." to "Не вдалося виконати тест. Перевірте інтернет і спробуйте ще раз.",
                 "Connection error" to "Помилка з’єднання", "Share speed test results" to "Поділитися результатами",
-                "Offline / no active connection" to "Немає активного з’єднання", "Mobile data" to "Мобільні дані",
-                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Підключена мережа",
+                tr("Offline / no active connection") to "Немає активного з’єднання", tr("Mobile data") to "Мобільні дані",
+                tr("Ethernet") to tr("Ethernet"), tr("VPN") to tr("VPN"), tr("Connected network") to "Підключена мережа",
                 "Metered connection: Yes" to "Тарифне з’єднання: так", "Metered connection: No" to "Тарифне з’єднання: ні",
                 "Wi-Fi name: " to "Назва Wi-Fi: ", "Operator: " to "Оператор: ", "Network type: " to "Тип мережі: ",
-                "Network name/operator details unavailable or permission not granted." to "Назва мережі або відомості оператора недоступні чи дозвіл не надано.",
-                "Connection: " to "З’єднання: ", "Offline" to "Офлайн", "Wi-Fi (name unavailable)" to "Wi-Fi (назва недоступна)",
-                "Mobile data (network details unavailable)" to "Мобільні дані (відомості недоступні)",
+                tr("Network name/operator details unavailable or permission not granted.") to "Назва мережі або відомості оператора недоступні чи дозвіл не надано.",
+                "Connection: " to "З’єднання: ", "Offline" to "Офлайн", tr("Wi-Fi (name unavailable)") to "Wi-Fi (назва недоступна)",
+                tr("Mobile data (network details unavailable)") to "Мобільні дані (відомості недоступні)",
                 "Ping: " to "Пінг: ", "Jitter: " to "Джиттер: ", "Download: " to "Завантаження: ", "Upload: " to "Передавання: "
             )
         )
@@ -631,21 +631,21 @@ class MainActivity : Activity() {
         val network = cm.activeNetwork
         val caps = if (network != null) cm.getNetworkCapabilities(network) else null
         val type = when {
-            caps == null -> "Offline / no active connection"
+            caps == null -> tr("Offline / no active connection")
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "Mobile data"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "Ethernet"
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "VPN"
-            else -> "Connected network"
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> tr("Mobile data")
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> tr("Ethernet")
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> tr("VPN")
+            else -> tr("Connected network")
         }
-        val metered = if (cm.isActiveNetworkMetered) "Metered connection: Yes" else "Metered connection: No"
+        val metered = if (cm.isActiveNetworkMetered) tr("Metered connection: Yes") else tr("Metered connection: No")
         val details = mutableListOf<String>()
         if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true &&
             checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             try {
                 val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
                 val ssid = wifi.connectionInfo?.ssid?.trim('"')
-                if (!ssid.isNullOrBlank() && ssid != "<unknown ssid>") details.add("Wi-Fi name: ${ssid}")
+                if (!ssid.isNullOrBlank() && ssid != "<unknown ssid>") details.add(tr("Wi-Fi name: ") + ssid)
             } catch (_: Exception) { }
         }
         if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true &&
@@ -653,7 +653,7 @@ class MainActivity : Activity() {
             try {
                 val telephony = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                 val operator = telephony.networkOperatorName
-                if (operator.isNotBlank()) details.add("Operator: ${operator}")
+                if (operator.isNotBlank()) details.add(tr("Operator: ") + operator)
                 val radio = when (telephony.dataNetworkType) {
                     TelephonyManager.NETWORK_TYPE_NR -> "5G"
                     TelephonyManager.NETWORK_TYPE_LTE -> "4G LTE"
@@ -666,22 +666,22 @@ class MainActivity : Activity() {
                     TelephonyManager.NETWORK_TYPE_EDGE -> "2G"
                     else -> "Mobile network type unavailable"
                 }
-                details.add("Network type: ${radio}")
+                details.add(tr("Network type: ") + radio)
             } catch (_: Exception) { }
         }
-        networkInfo.text = "Connection: ${type}\n${metered}" +
+        networkInfo.text = tr("Connection: ") + "${type}\n${metered}" +
             if (details.isEmpty()) "\nNetwork name/operator details unavailable or permission not granted." else "\n" + details.joinToString("\n")
         currentNetworkLabel = when {
             caps == null -> "Offline"
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
                 val name = details.firstOrNull { it.startsWith("Wi-Fi name:") }?.substringAfter("Wi-Fi name:")?.trim()
-                if (!name.isNullOrBlank()) "Wi-Fi: $name" else "Wi-Fi (name unavailable)"
+                if (!name.isNullOrBlank()) "${tr("Wi-Fi")}: $name" else tr("Wi-Fi (name unavailable)")
             }
             caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
                 val operator = details.firstOrNull { it.startsWith("Operator:") }?.substringAfter("Operator:")?.trim()
                 val radio = details.firstOrNull { it.startsWith("Network type:") }?.substringAfter("Network type:")?.trim()
                 listOfNotNull(operator?.takeIf { it.isNotBlank() }, radio?.takeIf { it.isNotBlank() })
-                    .joinToString(" • ").ifBlank { "Mobile data (network details unavailable)" }
+                    .joinToString(" • ").ifBlank { tr("Mobile data (network details unavailable)") }
             }
             else -> type
         }
@@ -691,7 +691,7 @@ class MainActivity : Activity() {
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "4G"
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ETH"
-                caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "VPN"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> tr("VPN")
                 else -> "●"
             }
             headerNetwork.contentDescription = type
@@ -763,10 +763,10 @@ class MainActivity : Activity() {
                 if (!::trafficUsageText.isInitialized) return@runOnUiThread
                 trafficUsageText.text = tr("TODAY") + "\n" +
                     tr("Wi-Fi") + ": " + formatBytes(today.first) + "   •   " +
-                    tr("Mobile data") + ": " + formatBytes(today.second) + "\n\n" +
+                    tr(tr("Mobile data")) + ": " + formatBytes(today.second) + "\n\n" +
                     tr("THIS MONTH") + "\n" +
                     tr("Wi-Fi") + ": " + formatBytes(month.first) + "   •   " +
-                    tr("Mobile data") + ": " + formatBytes(month.second) + "\n\n" +
+                    tr(tr("Mobile data")) + ": " + formatBytes(month.second) + "\n\n" +
                     tr("Tap to view traffic history")
             }
         }
@@ -815,7 +815,7 @@ class MainActivity : Activity() {
         val dailyLines = dates.take(30).map { date ->
             val wifi = historyPrefs.getLong("${date}_wifi", -1L)
             val mobile = historyPrefs.getLong("${date}_mobile", -1L)
-            "$date\n  Wi-Fi: ${formatBytes(wifi)}   •   ${tr("Mobile data")}: ${formatBytes(mobile)}"
+            "$date\n  Wi-Fi: ${formatBytes(wifi)}   •   ${tr(tr("Mobile data"))}: ${formatBytes(mobile)}"
         }
         val months = dates.map { it.substring(0, 7) }.distinct().sortedDescending().take(12)
         val monthlyLines = months.map { month ->
@@ -827,7 +827,7 @@ class MainActivity : Activity() {
                 if (wifi >= 0L) wifiTotal += wifi
                 if (mobile >= 0L) mobileTotal += mobile
             }
-            "$month\n  Wi-Fi: ${formatBytes(wifiTotal)}   •   ${tr("Mobile data")}: ${formatBytes(mobileTotal)}"
+            "$month\n  Wi-Fi: ${formatBytes(wifiTotal)}   •   ${tr(tr("Mobile data"))}: ${formatBytes(mobileTotal)}"
         }
         val message = buildString {
             append(tr("DAILY HISTORY")); append("\n")
@@ -857,7 +857,7 @@ class MainActivity : Activity() {
     private fun refreshHistory() {
         val history = prefs.getString("history", "") ?: ""
         val recent = history.split("\n").filter { it.isNotBlank() }.take(3)
-        historyText.text = if (recent.isEmpty()) "Your completed tests will appear here." else recent.joinToString("\n\n")
+        historyText.text = if (recent.isEmpty()) tr("Your completed tests will appear here.") else recent.joinToString("\n\n")
     }
 
     private fun addSectionTitle(parent: LinearLayout, title: String) {
