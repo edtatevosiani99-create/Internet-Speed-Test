@@ -1,6 +1,7 @@
 package com.edtatevosiani99.internetspeedtest
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.graphics.Color
 import android.graphics.Typeface
@@ -24,12 +25,15 @@ class MainActivity : Activity() {
     private lateinit var downloadValue: TextView
     private lateinit var uploadValue: TextView
     private lateinit var startButton: Button
+    private lateinit var shareButton: Button
+    private var lastResult = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = bg
         window.navigationBarColor = bg
         window.decorView.systemUiVisibility = 0
+        lastResult = getPreferences(MODE_PRIVATE).getString("last_result", "") ?: ""
         buildScreen()
     }
 
@@ -107,6 +111,31 @@ class MainActivity : Activity() {
         val buttonParams = LinearLayout.LayoutParams(-1, dp(58))
         buttonParams.topMargin = dp(28)
         root.addView(startButton, buttonParams)
+
+        shareButton = Button(this).apply {
+            text = "SHARE RESULTS"
+            textSize = 14f
+            setTextColor(cyan)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = dp(14).toFloat()
+                setColor(panel)
+                setStroke(dp(1), cyan)
+            }
+            isEnabled = lastResult.isNotBlank()
+            alpha = if (isEnabled) 1f else 0.55f
+            setOnClickListener {
+                if (lastResult.isNotBlank()) {
+                    val send = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, lastResult)
+                    }
+                    startActivity(Intent.createChooser(send, "Share speed test results"))
+                }
+            }
+        }
+        val shareParams = LinearLayout.LayoutParams(-1, dp(52))
+        shareParams.topMargin = dp(10)
+        root.addView(shareButton, shareParams)
 
         val footer = TextView(this).apply {
             text = "No ads • No account required"
@@ -220,6 +249,10 @@ class MainActivity : Activity() {
                     downloadValue.text = String.format("%.1f", downMbps)
                     uploadValue.text = if (response in 200..299) String.format("%.1f", upMbps) else "N/A"
                     status.text = "Test complete"
+                    lastResult = "Internet Speed Test results\\nPing: ${ping} ms\\nDownload: ${String.format("%.1f", downMbps)} Mbps\\nUpload: ${if (response in 200..299) String.format("%.1f", upMbps) else "N/A"} Mbps"
+                    getPreferences(MODE_PRIVATE).edit().putString("last_result", lastResult).apply()
+                    shareButton.isEnabled = true
+                    shareButton.alpha = 1f
                     startButton.isEnabled = true
                     startButton.text = "TEST AGAIN"
                 }
