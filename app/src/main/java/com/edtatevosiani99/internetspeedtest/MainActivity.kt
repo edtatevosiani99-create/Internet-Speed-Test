@@ -252,6 +252,45 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun showAppMenu(anchor: View) {
+        val menu = PopupMenu(this, anchor)
+        menu.menu.add(0, 1, 0, "History")
+        menu.menu.add(0, 2, 1, "About app")
+        menu.menu.add(0, 3, 2, "No Ads")
+        menu.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> showHistoryDialog()
+                2 -> AlertDialog.Builder(this)
+                    .setTitle("Internet Speed Test")
+                    .setMessage("Test download, upload, ping and jitter. View connection details and recent test history.\n\nVersion 1.0")
+                    .setPositiveButton("OK", null)
+                    .show()
+                3 -> AlertDialog.Builder(this)
+                    .setTitle("No Ads")
+                    .setMessage("There are currently no ads in this app. A paid ad-free option can be added in a future version if ads are introduced. No purchase is available yet.")
+                    .setPositiveButton("OK", null)
+                    .show()
+                else -> return@setOnMenuItemClickListener false
+            }
+            true
+        }
+        menu.show()
+    }
+
+    private fun showHistoryDialog() {
+        val history = prefs.getString("history", "") ?: ""
+        AlertDialog.Builder(this)
+            .setTitle("Test History")
+            .setMessage(if (history.isBlank()) "Your completed tests will appear here." else history)
+            .setNeutralButton("Clear history") { _, _ ->
+                prefs.edit().remove("history").apply()
+                refreshHistory()
+                Toast.makeText(this, "History cleared", Toast.LENGTH_SHORT).show()
+            }
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
     private fun refreshNetworkInfo() {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork
