@@ -38,6 +38,7 @@ class MainActivity : Activity() {
     private lateinit var uploadValue: TextView
     private lateinit var jitterValue: TextView
     private lateinit var networkInfo: TextView
+    private lateinit var headerNetwork: TextView
     private lateinit var historyText: TextView
     private lateinit var startButton: Button
     private lateinit var shareButton: Button
@@ -77,7 +78,19 @@ class MainActivity : Activity() {
             text = "INTERNET SPEED TEST"; textSize = 20f; setTextColor(Color.WHITE)
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(0, -2, 1f))
-        header.addView(View(this), LinearLayout.LayoutParams(dp(42), dp(42)))
+        headerNetwork = TextView(this).apply {
+            text = "●"; textSize = 12f; setTextColor(cyan); gravity = Gravity.CENTER
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = dp(9).toFloat(); setColor(panel); setStroke(dp(1), Color.rgb(35, 64, 91))
+            }
+            contentDescription = "Current network connection"
+            setOnClickListener {
+                AlertDialog.Builder(this@MainActivity).setTitle("Network connection")
+                    .setMessage(networkInfo.text).setPositiveButton("Refresh") { _, _ -> refreshNetworkInfo() }
+                    .setNegativeButton("Close", null).show()
+            }
+        }
+        header.addView(headerNetwork, LinearLayout.LayoutParams(dp(42), dp(42)))
         root.addView(header, LinearLayout.LayoutParams(-1, dp(46)))
         root.addView(TextView(this).apply {
             text = "MEASURE YOUR CONNECTION"; textSize = 11f; letterSpacing = 0.18f
@@ -271,16 +284,62 @@ class MainActivity : Activity() {
                     .setMessage("Test download, upload, ping and jitter. View connection details and recent test history.\n\nVersion 1.0")
                     .setPositiveButton("OK", null)
                     .show()
-                3 -> AlertDialog.Builder(this)
-                    .setTitle("No Ads")
-                    .setMessage("There are currently no ads in this app. A paid ad-free option can be added in a future version if ads are introduced. No purchase is available yet.")
-                    .setPositiveButton("OK", null)
-                    .show()
+                3 -> showNoAdsDialog()
                 else -> return@setOnMenuItemClickListener false
             }
             true
         }
         menu.show()
+    }
+
+
+    private fun showNoAdsDialog() {
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(12), dp(20), dp(8))
+            setBackgroundColor(bg)
+        }
+        content.addView(TextView(this).apply {
+            text = "Enjoy a cleaner experience"; textSize = 20f
+            typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE); gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(-1, -2))
+        content.addView(TextView(this).apply {
+            text = "Choose an ad-free plan"; textSize = 13f
+            setTextColor(Color.rgb(165, 190, 215)); gravity = Gravity.CENTER
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5); bottomMargin = dp(14) })
+
+        fun planCard(title: String, price: String, detail: String, recommended: Boolean) {
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
+                setPadding(dp(14), dp(13), dp(14), dp(13))
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = dp(15).toFloat(); setColor(panel)
+                    setStroke(dp(if (recommended) 2 else 1), if (recommended) cyan else Color.rgb(45, 70, 98))
+                }
+            }
+            card.addView(TextView(this@MainActivity).apply {
+                text = if (recommended) "★  $title" else title
+                textSize = 15f; typeface = Typeface.DEFAULT_BOLD
+                setTextColor(if (recommended) cyan else Color.WHITE); gravity = Gravity.CENTER
+            })
+            card.addView(TextView(this@MainActivity).apply {
+                text = price; textSize = 27f; typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.WHITE); gravity = Gravity.CENTER
+            }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(3) })
+            card.addView(TextView(this@MainActivity).apply {
+                text = detail; textSize = 12f; setTextColor(Color.LTGRAY); gravity = Gravity.CENTER
+            })
+            content.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+            card.setOnClickListener {
+                AlertDialog.Builder(this@MainActivity).setTitle("Google Play purchase")
+                    .setMessage("The $title plan is a design preview only. Google Play Billing and the matching product must be configured before payments can be accepted. This app currently contains no ads, so no purchase has been made.")
+                    .setPositiveButton("OK", null).show()
+            }
+        }
+        planCard("1 MONTH", "€0.99", "Ad-free for one month", false)
+        planCard("1 YEAR", "€1.99", "Best value • Ad-free for one year", true)
+        AlertDialog.Builder(this).setTitle("✨  No Ads").setView(content)
+            .setNegativeButton("Close", null).show()
     }
 
     private fun showHistoryDialog() {
@@ -368,6 +427,17 @@ class MainActivity : Activity() {
         }
         networkInfo.text = "Connection: ${type}\n${metered}" +
             if (details.isEmpty()) "\nNetwork name/operator details unavailable or permission not granted." else "\n" + details.joinToString("\n")
+        if (::headerNetwork.isInitialized) {
+            headerNetwork.text = when {
+                caps == null -> "○"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "4G"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ETH"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> "VPN"
+                else -> "●"
+            }
+            headerNetwork.contentDescription = type
+        }
     }
 
     private fun refreshHistory() {
