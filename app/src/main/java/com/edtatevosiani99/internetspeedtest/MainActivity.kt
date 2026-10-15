@@ -408,6 +408,11 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Full Test History")
             .setMessage(if (history.isBlank()) "Your completed tests will appear here." else history.replace("\n", "\n\n"))
+            .setNeutralButton("Clear history") { _, _ ->
+                prefs.edit().remove("history").apply()
+                refreshHistory()
+                Toast.makeText(this, "History cleared", Toast.LENGTH_SHORT).show()
+            }
             .setPositiveButton("Close", null)
             .show()
     }
