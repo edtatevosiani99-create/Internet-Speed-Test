@@ -43,6 +43,7 @@ class MainActivity : Activity() {
     private lateinit var startButton: Button
     private lateinit var shareButton: Button
     private var lastResult = ""
+    private var currentNetworkLabel = "Unknown network"
     private val prefs by lazy { getSharedPreferences("speed_test", MODE_PRIVATE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,13 +141,11 @@ class MainActivity : Activity() {
         }
         root.addView(shareButton, LinearLayout.LayoutParams(-1, dp(50)).apply { topMargin = dp(8) })
 
-        addSectionTitle(root, "NETWORK")
         networkInfo = TextView(this).apply {
             textSize = 13f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
         }
-        root.addView(networkInfo, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        addSectionTitle(root, "TEST HISTORY")
+        addSectionTitle(root, "RECENT TESTS")
         historyText = TextView(this).apply {
             textSize = 12f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
@@ -245,7 +244,6 @@ class MainActivity : Activity() {
                 val upText = if (response in 200..299) String.format(java.util.Locale.US, "%.1f", upMbps) else "N/A"
                 val result = "Internet Speed Test\nPing: ${ping.roundToInt()} ms\nJitter: ${jitter.roundToInt()} ms\nDownload: ${downText} Mbps\nUpload: ${upText} Mbps"
                 val date = java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
-                val historyLine = "${date}  •  ↓${downText}  ↑${upText}  •  ${ping.roundToInt()} ms ping"
                 runOnUiThread {
                     pingValue.text = ping.roundToInt().toString()
                     jitterValue.text = jitter.roundToInt().toString()
@@ -253,10 +251,12 @@ class MainActivity : Activity() {
                     status.text = "Test complete"
                     lastResult = result
                     prefs.edit().putString("last_result", result).apply()
+                    refreshNetworkInfo()
+                    val historyLine = "$date  •  ↓$downText Mbps  ↑$upText Mbps  •  Ping ${ping.roundToInt()} ms  •  Jitter ${jitter.roundToInt()} ms  •  $currentNetworkLabel"
                     val history = prefs.getString("history", "") ?: ""
-                    val updated = (listOf(historyLine) + history.split("\n").filter { it.isNotBlank() }).take(10).joinToString("\n")
+                    val updated = (listOf(historyLine) + history.split("\n").filter { it.isNotBlank() }).joinToString("\n")
                     prefs.edit().putString("history", updated).apply()
-                    refreshHistory(); refreshNetworkInfo()
+                    refreshHistory()
                     shareButton.isEnabled = true; shareButton.alpha = 1f
                     startButton.isEnabled = true; startButton.text = "TEST AGAIN"
                 }
@@ -345,8 +345,8 @@ class MainActivity : Activity() {
     private fun showHistoryDialog() {
         val history = prefs.getString("history", "") ?: ""
         AlertDialog.Builder(this)
-            .setTitle("Test History")
-            .setMessage(if (history.isBlank()) "Your completed tests will appear here." else history)
+            .setTitle("Full Test History")
+            .setMessage(if (history.isBlank()) "Your completed tests will appear here." else history.replace("\n", "\n\n"))
             .setNeutralButton("Clear history") { _, _ ->
                 prefs.edit().remove("history").apply()
                 refreshHistory()
@@ -427,6 +427,20 @@ class MainActivity : Activity() {
         }
         networkInfo.text = "Connection: ${type}\n${metered}" +
             if (details.isEmpty()) "\nNetwork name/operator details unavailable or permission not granted." else "\n" + details.joinToString("\n")
+        currentNetworkLabel = when {
+            caps == null -> "Offline"
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                val name = details.firstOrNull { it.startsWith("Wi-Fi name:") }?.substringAfter("Wi-Fi name:")?.trim()
+                if (!name.isNullOrBlank()) "Wi-Fi: $name" else "Wi-Fi (name unavailable)"
+            }
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                val operator = details.firstOrNull { it.startsWith("Operator:") }?.substringAfter("Operator:")?.trim()
+                val radio = details.firstOrNull { it.startsWith("Network type:") }?.substringAfter("Network type:")?.trim()
+                listOfNotNull(operator?.takeIf { it.isNotBlank() }, radio?.takeIf { it.isNotBlank() })
+                    .joinToString(" • ").ifBlank { "Mobile data (network details unavailable)" }
+            }
+            else -> type
+        }
         if (::headerNetwork.isInitialized) {
             headerNetwork.text = when {
                 caps == null -> "○"
@@ -442,7 +456,8 @@ class MainActivity : Activity() {
 
     private fun refreshHistory() {
         val history = prefs.getString("history", "") ?: ""
-        historyText.text = if (history.isBlank()) "Your completed tests will appear here." else history
+        val recent = history.split("\n").filter { it.isNotBlank() }.take(3)
+        historyText.text = if (recent.isEmpty()) "Your completed tests will appear here." else recent.joinToString("\n\n")
     }
 
     private fun addSectionTitle(parent: LinearLayout, title: String) {
