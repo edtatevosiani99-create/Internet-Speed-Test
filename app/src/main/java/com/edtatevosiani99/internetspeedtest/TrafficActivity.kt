@@ -2,6 +2,7 @@ package com.edtatevosiani99.internetspeedtest
 
 import android.app.Activity
 import android.app.AppOpsManager
+import android.app.usage.NetworkStats
 import android.app.usage.NetworkStatsManager
 import android.content.Context
 import android.content.Intent
@@ -378,7 +379,7 @@ class TrafficActivity : Activity() {
             try {
                 val stats = manager.querySummary(type, null, start, end)
                 var sum = 0L
-                val bucket = NetworkStatsManager.Bucket()
+                val bucket = NetworkStats.Bucket()
                 while (stats.hasNextBucket()) {
                     if (stats.getNextBucket(bucket)) {
                         sum += bucket.rxBytes + bucket.txBytes
