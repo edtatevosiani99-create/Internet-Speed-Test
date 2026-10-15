@@ -31,6 +31,7 @@ class TrafficActivity : Activity() {
     private val cyan = Color.rgb(42, 214, 255)
     private val historyPrefs by lazy { getSharedPreferences("traffic_history_locked", MODE_PRIVATE) }
     private lateinit var content: LinearLayout
+    @Volatile private var isLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -213,24 +214,38 @@ class TrafficActivity : Activity() {
             renderPermissionNeeded()
             return
         }
-        content.removeAllViews()
-        content.addView(label(tr("Updating traffic history…"), 14f, Color.LTGRAY), matchWrap().apply { bottomMargin = dp(12) })
+        if (isLoading) return
+        isLoading = true
+        // Render the table immediately, before Android finishes querying statistics.
+        renderRows()
         Thread {
-            val now = System.currentTimeMillis()
-            val todayStart = startOfDay(now)
-            val cursor = Calendar.getInstance().apply { timeInMillis = todayStart; add(Calendar.DAY_OF_YEAR, -89) }
             val editor = historyPrefs.edit()
-            while (cursor.timeInMillis <= todayStart) {
-                val dayStart = cursor.timeInMillis
-                val nextDay = Calendar.getInstance().apply { timeInMillis = dayStart; add(Calendar.DAY_OF_YEAR, 1) }.timeInMillis
-                val key = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(dayStart))
-                val usage = if (dayStart == todayStart) readTrafficForRange(dayStart, now) else readTrafficForRange(dayStart, nextDay)
-                saveLatest(editor, key + "_wifi", usage.first)
-                saveLatest(editor, key + "_mobile", usage.second)
-                cursor.add(Calendar.DAY_OF_YEAR, 1)
+            try {
+                val now = System.currentTimeMillis()
+                val todayStart = startOfDay(now)
+                val cursor = Calendar.getInstance().apply { timeInMillis = todayStart; add(Calendar.DAY_OF_YEAR, -89) }
+                while (cursor.timeInMillis <= todayStart) {
+                    val dayStart = cursor.timeInMillis
+                    val nextDay = Calendar.getInstance().apply { timeInMillis = dayStart; add(Calendar.DAY_OF_YEAR, 1) }.timeInMillis
+                    val key = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(dayStart))
+                    try {
+                        val usage = if (dayStart == todayStart) readTrafficForRange(dayStart, now) else readTrafficForRange(dayStart, nextDay)
+                        saveLatest(editor, key + "_wifi", usage.first)
+                        saveLatest(editor, key + "_mobile", usage.second)
+                    } catch (_: Exception) {
+                        // Keep previously saved values for this date and continue.
+                    }
+                    cursor.add(Calendar.DAY_OF_YEAR, 1)
+                }
+                editor.apply()
+            } catch (_: Exception) {
+                // Keep the saved table visible if Android statistics fail.
+            } finally {
+                runOnUiThread {
+                    isLoading = false
+                    renderRows()
+                }
             }
-            editor.apply()
-            runOnUiThread { renderRows() }
         }.start()
     }
 
