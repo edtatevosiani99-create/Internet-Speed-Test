@@ -32,19 +32,45 @@ class TrafficActivity : Activity() {
     private val historyPrefs by lazy { getSharedPreferences("traffic_history_locked", MODE_PRIVATE) }
     private lateinit var content: LinearLayout
     @Volatile private var isLoading = false
+    private var autoOpenedUsageSettings = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = bg
         window.navigationBarColor = bg
         buildPage()
-        if (hasUsageAccess()) loadAndRender() else renderPermissionNeeded()
+        if (hasUsageAccess()) {
+            loadAndRender()
+        } else {
+            renderPermissionNeeded()
+            openUsageSettingsAutomatically()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         if (::content.isInitialized) {
-            if (hasUsageAccess()) loadAndRender() else renderPermissionNeeded()
+            if (hasUsageAccess()) {
+                loadAndRender()
+            } else {
+                renderPermissionNeeded()
+                // Do not repeatedly reopen Settings if the user returns without enabling access.
+                if (!autoOpenedUsageSettings) openUsageSettingsAutomatically()
+            }
+        }
+    }
+
+    private fun openUsageSettingsAutomatically() {
+        if (autoOpenedUsageSettings || hasUsageAccess()) return
+        autoOpenedUsageSettings = true
+        try {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        } catch (_: Exception) {
+            Toast.makeText(
+                this,
+                tr("Open Android Settings and allow Usage access"),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
