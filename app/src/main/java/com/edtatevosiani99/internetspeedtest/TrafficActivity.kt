@@ -280,9 +280,7 @@ class TrafficActivity : Activity() {
             key.substringBeforeLast("_").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
         }.distinct().sortedDescending()
         val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        if (allDates.none { it == todayKey }) {
-            content.addView(label(tr("No traffic data available yet. Check Usage access in Android Settings."), 13f, Color.LTGRAY), matchWrap())
-        }
+        val monthKey = todayKey.substring(0, 7)
 
         addDailyScale(todayKey)
 
@@ -292,42 +290,48 @@ class TrafficActivity : Activity() {
             setPadding(dp(8), dp(8), dp(8), dp(8))
         }
         table.addView(tableRow(tr("Date"), tr("Mob"), tr("WiFi"), tr("Total"), true))
-        allDates.take(90).forEach { date ->
+
+        val todayWifi = historyPrefs.getLong(todayKey + "_wifi", -1L)
+        val todayMobile = historyPrefs.getLong(todayKey + "_mobile", -1L)
+        val todayTotal = if (todayWifi >= 0L && todayMobile >= 0L) todayWifi + todayMobile else -1L
+        table.addView(tableRow(tr("Today"), formatBytes(todayMobile), formatBytes(todayWifi), formatBytes(todayTotal), true))
+        table.addView(LinearLayout(this).apply { setBackgroundColor(Color.rgb(35, 55, 80)) }, LinearLayout.LayoutParams(-1, dp(1)))
+
+        var monthWifi = 0L
+        var monthMobile = 0L
+        var monthWifiKnown = false
+        var monthMobileKnown = false
+        allDates.filter { it.startsWith(monthKey) }.forEach { date ->
+            val w = historyPrefs.getLong(date + "_wifi", -1L)
+            val m = historyPrefs.getLong(date + "_mobile", -1L)
+            if (w >= 0L) { monthWifi += w; monthWifiKnown = true }
+            if (m >= 0L) { monthMobile += m; monthMobileKnown = true }
+        }
+        val monthWifiValue = if (monthWifiKnown) monthWifi else -1L
+        val monthMobileValue = if (monthMobileKnown) monthMobile else -1L
+        val monthTotal = if (monthWifiKnown && monthMobileKnown) monthWifi + monthMobile else -1L
+        table.addView(tableRow(tr("This month"), formatBytes(monthMobileValue), formatBytes(monthWifiValue), formatBytes(monthTotal), true))
+        table.addView(LinearLayout(this).apply { setBackgroundColor(cyan) }, LinearLayout.LayoutParams(-1, dp(1)))
+
+        allDates.filter { it != todayKey }.take(89).forEachIndexed { index, date ->
             val wifi = historyPrefs.getLong(date + "_wifi", -1L)
             val mobile = historyPrefs.getLong(date + "_mobile", -1L)
             val total = if (wifi >= 0L && mobile >= 0L) wifi + mobile else -1L
-            val displayDate = try { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(date)!!) } catch (_: Exception) { date }
-            table.addView(tableRow(displayDate, formatBytes(mobile), formatBytes(wifi), formatBytes(total), date == todayKey))
-            if (date != allDates.take(90).lastOrNull()) table.addView(LinearLayout(this).apply { setBackgroundColor(Color.rgb(35, 55, 80)) }, LinearLayout.LayoutParams(-1, dp(1)))
+            val displayDate = try {
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
+                    SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(date)!!
+                )
+            } catch (_: Exception) { date }
+            table.addView(tableRow(displayDate, formatBytes(mobile), formatBytes(wifi), formatBytes(total), false))
+            if (index < allDates.filter { it != todayKey }.take(89).size - 1) {
+                table.addView(LinearLayout(this).apply { setBackgroundColor(Color.rgb(35, 55, 80)) }, LinearLayout.LayoutParams(-1, dp(1)))
+            }
         }
         content.addView(table, matchWrap())
-
-        content.addView(label(tr("This month history"), 16f, cyan, true), matchWrap().apply { topMargin = dp(22); bottomMargin = dp(8) })
-        val monthly = allDates.map { it.substring(0, 7) }.distinct().sortedDescending().take(12)
-        monthly.forEach { month ->
-            var wifi = 0L
-            var mobile = 0L
-            var wifiKnown = false
-            var mobileKnown = false
-            allDates.filter { it.startsWith(month) }.forEach { date ->
-                val w = historyPrefs.getLong(date + "_wifi", -1L)
-                val m = historyPrefs.getLong(date + "_mobile", -1L)
-                if (w >= 0L) { wifi += w; wifiKnown = true }
-                if (m >= 0L) { mobile += m; mobileKnown = true }
-            }
-            val total = if (wifiKnown && mobileKnown) wifi + mobile else -1L
-            val monthName = try { SimpleDateFormat("MMMM yyyy", selectedLocale()).format(SimpleDateFormat("yyyy-MM", Locale.US).parse(month)!!) } catch (_: Exception) { month }
-            val card = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL; background = panelBackground()
-                setPadding(dp(12), dp(10), dp(12), dp(10))
-            }
-            card.addView(label(monthName, 14f, Color.WHITE, true), matchWrap())
-            card.addView(label(tr("Mob") + ": " + if (mobileKnown) formatBytes(mobile) else "—", 12f, Color.rgb(205, 220, 238)), matchWrap().apply { topMargin = dp(4) })
-            card.addView(label(tr("WiFi") + ": " + if (wifiKnown) formatBytes(wifi) else "—", 12f, Color.rgb(205, 220, 238)), matchWrap().apply { topMargin = dp(2) })
-            card.addView(label(tr("Total") + ": " + formatBytes(total), 13f, cyan, true), matchWrap().apply { topMargin = dp(4) })
-            content.addView(card, matchWrap().apply { bottomMargin = dp(8) })
-        }
-        content.addView(label(tr("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button."), 11f, Color.rgb(125, 145, 170)), matchWrap().apply { topMargin = dp(10) })
+        content.addView(label(
+            tr("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button."),
+            11f, Color.rgb(125, 145, 170)
+        ), matchWrap().apply { topMargin = dp(10) })
     }
 
     private fun addDailyScale(todayKey: String) {
