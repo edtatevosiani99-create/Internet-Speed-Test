@@ -1,13 +1,18 @@
 package com.edtatevosiani99.internetspeedtest
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
+import android.telephony.TelephonyManager
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -47,6 +52,7 @@ class MainActivity : Activity() {
         buildScreen()
         refreshNetworkInfo()
         refreshHistory()
+        requestNetworkDetailsPermissionIfNeeded()
     }
 
     private fun buildScreen() {
@@ -291,6 +297,32 @@ class MainActivity : Activity() {
             .show()
     }
 
+    private val networkPermissionRequest = 7104
+
+    private fun requestNetworkDetailsPermissionIfNeeded() {
+        val needed = mutableListOf<String>()
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            needed.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            needed.add(Manifest.permission.READ_PHONE_STATE)
+        }
+        if (needed.isEmpty()) return
+        AlertDialog.Builder(this)
+            .setTitle("Network details permission")
+            .setMessage("Allow optional permissions to show your Wi-Fi network name and mobile operator/network details. Internet speed testing works even if you decline.")
+            .setPositiveButton("Continue") { _, _ ->
+                requestPermissions(needed.toTypedArray(), networkPermissionRequest)
+            }
+            .setNegativeButton("Not now") { _, _ -> refreshNetworkInfo() }
+            .show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == networkPermissionRequest) refreshNetworkInfo()
+    }
+
     private fun refreshNetworkInfo() {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork
@@ -304,7 +336,38 @@ class MainActivity : Activity() {
             else -> "Connected network"
         }
         val metered = if (cm.isActiveNetworkMetered) "Metered connection: Yes" else "Metered connection: No"
-        networkInfo.text = "Connection: ${type}\n${metered}"
+        val details = mutableListOf<String>()
+        if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true &&
+            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            try {
+                val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val ssid = wifi.connectionInfo?.ssid?.trim('"')
+                if (!ssid.isNullOrBlank() && ssid != "<unknown ssid>") details.add("Wi-Fi name: ${ssid}")
+            } catch (_: Exception) { }
+        }
+        if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true &&
+            checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            try {
+                val telephony = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                val operator = telephony.networkOperatorName
+                if (operator.isNotBlank()) details.add("Operator: ${operator}")
+                val radio = when (telephony.dataNetworkType) {
+                    TelephonyManager.NETWORK_TYPE_NR -> "5G"
+                    TelephonyManager.NETWORK_TYPE_LTE -> "4G LTE"
+                    TelephonyManager.NETWORK_TYPE_HSPAP, TelephonyManager.NETWORK_TYPE_HSPA,
+                    TelephonyManager.NETWORK_TYPE_HSDPA, TelephonyManager.NETWORK_TYPE_HSUPA -> "3G / HSPA"
+                    TelephonyManager.NETWORK_TYPE_UMTS, TelephonyManager.NETWORK_TYPE_CDMA,
+                    TelephonyManager.NETWORK_TYPE_EVDO_0, TelephonyManager.NETWORK_TYPE_EVDO_A,
+                    TelephonyManager.NETWORK_TYPE_EVDO_B -> "3G"
+                    TelephonyManager.NETWORK_TYPE_GSM, TelephonyManager.NETWORK_TYPE_GPRS,
+                    TelephonyManager.NETWORK_TYPE_EDGE -> "2G"
+                    else -> "Mobile network type unavailable"
+                }
+                details.add("Network type: ${radio}")
+            } catch (_: Exception) { }
+        }
+        networkInfo.text = "Connection: ${type}\n${metered}" +
+            if (details.isEmpty()) "\nNetwork name/operator details unavailable or permission not granted." else "\n" + details.joinToString("\n")
     }
 
     private fun refreshHistory() {
