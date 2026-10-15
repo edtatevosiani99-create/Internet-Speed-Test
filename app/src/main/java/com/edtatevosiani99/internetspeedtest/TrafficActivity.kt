@@ -32,7 +32,6 @@ class TrafficActivity : Activity() {
     private val historyPrefs by lazy { getSharedPreferences("traffic_history_locked", MODE_PRIVATE) }
     private lateinit var content: LinearLayout
     @Volatile private var isLoading = false
-    private var autoOpenedUsageSettings = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +42,6 @@ class TrafficActivity : Activity() {
             loadAndRender()
         } else {
             renderPermissionNeeded()
-            openUsageSettingsAutomatically()
         }
     }
 
@@ -54,17 +52,16 @@ class TrafficActivity : Activity() {
                 loadAndRender()
             } else {
                 renderPermissionNeeded()
-                // Do not repeatedly reopen Settings if the user returns without enabling access.
-                if (!autoOpenedUsageSettings) openUsageSettingsAutomatically()
             }
         }
     }
 
-    private fun openUsageSettingsAutomatically() {
-        if (autoOpenedUsageSettings || hasUsageAccess()) return
-        autoOpenedUsageSettings = true
+    private fun openUsageSettings() {
         try {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+            }
+            startActivity(intent)
         } catch (_: Exception) {
             Toast.makeText(
                 this,
@@ -301,13 +298,7 @@ class TrafficActivity : Activity() {
                 cornerRadius = dp(12).toFloat()
                 setColor(cyan)
             }
-            setOnClickListener {
-                try {
-                    startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                } catch (_: Exception) {
-                    Toast.makeText(this@TrafficActivity, tr("Open Android Settings and allow Usage access"), Toast.LENGTH_LONG).show()
-                }
-            }
+            setOnClickListener { openUsageSettings() }
         }
         card.addView(allow, matchWrap().apply { topMargin = dp(16) })
         // Place the permission card directly after the table, not above it.
