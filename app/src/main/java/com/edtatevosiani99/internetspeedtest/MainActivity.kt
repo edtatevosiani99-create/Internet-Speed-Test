@@ -351,7 +351,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Подключённая сеть",
                 "Metered connection: Yes" to "Лимитное соединение: да", "Metered connection: No" to "Лимитное соединение: нет",
                 "Wi-Fi name: " to "Имя Wi-Fi: ", "Operator: " to "Оператор: ", "Network type: " to "Тип сети: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Имя сети или сведения об операторе недоступны либо нет разрешения.",
+                "Network name/operator details unavailable or permission not granted." to "Имя сети или сведения об операторе недоступны либо нет разрешения.",
                 "Connection: " to "Соединение: ", "Offline" to "Нет соединения", "Wi-Fi (name unavailable)" to "Wi-Fi (имя недоступно)",
                 "Mobile data (network details unavailable)" to "Мобильная сеть (сведения недоступны)",
                 "Ping: " to "Пинг: ", "Jitter: " to "Джиттер: ", "Download: " to "Загрузка: ", "Upload: " to "Отдача: "
@@ -376,7 +376,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "დაკავშირებული ქსელი",
                 "Metered connection: Yes" to "ლიმიტირებული კავშირი: დიახ", "Metered connection: No" to "ლიმიტირებული კავშირი: არა",
                 "Wi-Fi name: " to "Wi-Fi-ის სახელი: ", "Operator: " to "ოპერატორი: ", "Network type: " to "ქსელის ტიპი: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "ქსელის სახელი ან ოპერატორის დეტალები მიუწვდომელია ან ნებართვა არ არის გაცემული.",
+                "Network name/operator details unavailable or permission not granted." to "ქსელის სახელი ან ოპერატორის დეტალები მიუწვდომელია ან ნებართვა არ არის გაცემული.",
                 "Connection: " to "კავშირი: ", "Offline" to "კავშირი არ არის", "Wi-Fi (name unavailable)" to "Wi-Fi (სახელი მიუწვდომელია)",
                 "Mobile data (network details unavailable)" to "მობილური ქსელი (დეტალები მიუწვდომელია)",
                 "Ping: " to "პინგი: ", "Jitter: " to "ჯიტერი: ", "Download: " to "ჩამოტვირთვა: ", "Upload: " to "ატვირთვა: "
@@ -399,7 +399,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Verbundenes Netzwerk",
                 "Metered connection: Yes" to "Getaktete Verbindung: Ja", "Metered connection: No" to "Getaktete Verbindung: Nein",
                 "Wi-Fi name: " to "WLAN-Name: ", "Operator: " to "Anbieter: ", "Network type: " to "Netzwerktyp: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Netzwerkname oder Anbieterdetails nicht verfügbar oder Berechtigung fehlt.",
+                "Network name/operator details unavailable or permission not granted." to "Netzwerkname oder Anbieterdetails nicht verfügbar oder Berechtigung fehlt.",
                 "Connection: " to "Verbindung: ", "Offline" to "Offline", "Wi-Fi (name unavailable)" to "WLAN (Name nicht verfügbar)",
                 "Mobile data (network details unavailable)" to "Mobile Daten (Netzwerkdetails nicht verfügbar)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Download: ", "Upload: " to "Upload: "
@@ -422,7 +422,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Red conectada",
                 "Metered connection: Yes" to "Conexión de uso medido: Sí", "Metered connection: No" to "Conexión de uso medido: No",
                 "Wi-Fi name: " to "Nombre de Wi-Fi: ", "Operator: " to "Operador: ", "Network type: " to "Tipo de red: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Nombre de red o datos del operador no disponibles o permiso no concedido.",
+                "Network name/operator details unavailable or permission not granted." to "Nombre de red o datos del operador no disponibles o permiso no concedido.",
                 "Connection: " to "Conexión: ", "Offline" to "Sin conexión", "Wi-Fi (name unavailable)" to "Wi-Fi (nombre no disponible)",
                 "Mobile data (network details unavailable)" to "Datos móviles (detalles no disponibles)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Descarga: ", "Upload: " to "Subida: "
@@ -445,7 +445,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Réseau connecté",
                 "Metered connection: Yes" to "Connexion limitée : oui", "Metered connection: No" to "Connexion limitée : non",
                 "Wi-Fi name: " to "Nom du Wi-Fi : ", "Operator: " to "Opérateur : ", "Network type: " to "Type de réseau : ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Nom du réseau ou détails opérateur indisponibles, ou autorisation refusée.",
+                "Network name/operator details unavailable or permission not granted." to "Nom du réseau ou détails opérateur indisponibles, ou autorisation refusée.",
                 "Connection: " to "Connexion : ", "Offline" to "Hors ligne", "Wi-Fi (name unavailable)" to "Wi-Fi (nom indisponible)",
                 "Mobile data (network details unavailable)" to "Données mobiles (détails indisponibles)",
                 "Ping: " to "Ping : ", "Jitter: " to "Gigue : ", "Download: " to "Téléchargement : ", "Upload: " to "Envoi : "
@@ -468,7 +468,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Rete connessa",
                 "Metered connection: Yes" to "Connessione a consumo: sì", "Metered connection: No" to "Connessione a consumo: no",
                 "Wi-Fi name: " to "Nome Wi-Fi: ", "Operator: " to "Operatore: ", "Network type: " to "Tipo di rete: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Nome rete o dettagli operatore non disponibili oppure autorizzazione non concessa.",
+                "Network name/operator details unavailable or permission not granted." to "Nome rete o dettagli operatore non disponibili oppure autorizzazione non concessa.",
                 "Connection: " to "Connessione: ", "Offline" to "Offline", "Wi-Fi (name unavailable)" to "Wi-Fi (nome non disponibile)",
                 "Mobile data (network details unavailable)" to "Dati mobili (dettagli rete non disponibili)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Download: ", "Upload: " to "Upload: "
@@ -491,7 +491,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Bağlı ağ",
                 "Metered connection: Yes" to "Kotalı bağlantı: Evet", "Metered connection: No" to "Kotalı bağlantı: Hayır",
                 "Wi-Fi name: " to "Wi-Fi adı: ", "Operator: " to "Operatör: ", "Network type: " to "Ağ türü: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Ağ adı veya operatör bilgileri kullanılamıyor ya da izin verilmedi.",
+                "Network name/operator details unavailable or permission not granted." to "Ağ adı veya operatör bilgileri kullanılamıyor ya da izin verilmedi.",
                 "Connection: " to "Bağlantı: ", "Offline" to "Çevrimdışı", "Wi-Fi (name unavailable)" to "Wi-Fi (ad kullanılamıyor)",
                 "Mobile data (network details unavailable)" to "Mobil veri (ağ ayrıntıları yok)",
                 "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "İndirme: ", "Upload: " to "Yükleme: "
@@ -514,7 +514,7 @@ class MainActivity : Activity() {
                 "Ethernet" to tr("Ethernet"), "VPN" to tr("VPN"), "Connected network" to "Підключена мережа",
                 "Metered connection: Yes" to "Тарифне з’єднання: так", "Metered connection: No" to "Тарифне з’єднання: ні",
                 "Wi-Fi name: " to "Назва Wi-Fi: ", "Operator: " to "Оператор: ", "Network type: " to "Тип мережі: ",
-                tr("Network name/operator details unavailable or permission not granted.") to "Назва мережі або відомості оператора недоступні чи дозвіл не надано.",
+                "Network name/operator details unavailable or permission not granted." to "Назва мережі або відомості оператора недоступні чи дозвіл не надано.",
                 "Connection: " to "З’єднання: ", "Offline" to "Офлайн", "Wi-Fi (name unavailable)" to "Wi-Fi (назва недоступна)",
                 "Mobile data (network details unavailable)" to "Мобільні дані (відомості недоступні)",
                 "Ping: " to "Пінг: ", "Jitter: " to "Джиттер: ", "Download: " to "Завантаження: ", "Upload: " to "Передавання: "
@@ -632,7 +632,7 @@ class MainActivity : Activity() {
         val caps = if (network != null) cm.getNetworkCapabilities(network) else null
         val type = when {
             caps == null -> tr("Offline / no active connection")
-            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> tr("Wi-Fi")
             caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> tr("Mobile data")
             caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> tr("Ethernet")
             caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> tr("VPN")
@@ -670,16 +670,16 @@ class MainActivity : Activity() {
             } catch (_: Exception) { }
         }
         networkInfo.text = tr("Connection: ") + "${type}\n${metered}" +
-            if (details.isEmpty()) "\nNetwork name/operator details unavailable or permission not granted." else "\n" + details.joinToString("\n")
+            if (details.isEmpty()) "\n" + tr("Network name/operator details unavailable or permission not granted.") else "\n" + details.joinToString("\n")
         currentNetworkLabel = when {
-            caps == null -> "Offline"
+            caps == null -> tr("Offline")
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
-                val name = details.firstOrNull { it.startsWith("Wi-Fi name:") }?.substringAfter("Wi-Fi name:")?.trim()
+                val name = details.firstOrNull { it.startsWith(tr("Wi-Fi name: ")) }?.substringAfter(tr("Wi-Fi name: "))?.trim()
                 if (!name.isNullOrBlank()) "${tr("Wi-Fi")}: $name" else tr("Wi-Fi (name unavailable)")
             }
             caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
-                val operator = details.firstOrNull { it.startsWith("Operator:") }?.substringAfter("Operator:")?.trim()
-                val radio = details.firstOrNull { it.startsWith("Network type:") }?.substringAfter("Network type:")?.trim()
+                val operator = details.firstOrNull { it.startsWith(tr("Operator: ")) }?.substringAfter(tr("Operator: "))?.trim()
+                val radio = details.firstOrNull { it.startsWith(tr("Network type: ")) }?.substringAfter(tr("Network type: "))?.trim()
                 listOfNotNull(operator?.takeIf { it.isNotBlank() }, radio?.takeIf { it.isNotBlank() })
                     .joinToString(" • ").ifBlank { tr("Mobile data (network details unavailable)") }
             }
@@ -688,7 +688,7 @@ class MainActivity : Activity() {
         if (::headerNetwork.isInitialized) {
             headerNetwork.text = when {
                 caps == null -> "○"
-                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> tr("Wi-Fi")
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "4G"
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ETH"
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> tr("VPN")
@@ -763,10 +763,10 @@ class MainActivity : Activity() {
                 if (!::trafficUsageText.isInitialized) return@runOnUiThread
                 trafficUsageText.text = tr("TODAY") + "\n" +
                     tr("Wi-Fi") + ": " + formatBytes(today.first) + "   •   " +
-                    tr(tr("Mobile data")) + ": " + formatBytes(today.second) + "\n\n" +
+                    tr("Mobile data") + ": " + formatBytes(today.second) + "\n\n" +
                     tr("THIS MONTH") + "\n" +
                     tr("Wi-Fi") + ": " + formatBytes(month.first) + "   •   " +
-                    tr(tr("Mobile data")) + ": " + formatBytes(month.second) + "\n\n" +
+                    tr("Mobile data") + ": " + formatBytes(month.second) + "\n\n" +
                     tr("Tap to view traffic history")
             }
         }
@@ -815,7 +815,7 @@ class MainActivity : Activity() {
         val dailyLines = dates.take(30).map { date ->
             val wifi = historyPrefs.getLong("${date}_wifi", -1L)
             val mobile = historyPrefs.getLong("${date}_mobile", -1L)
-            "$date\n  Wi-Fi: ${formatBytes(wifi)}   •   ${tr(tr("Mobile data"))}: ${formatBytes(mobile)}"
+            "$date\n  Wi-Fi: ${formatBytes(wifi)}   •   ${tr("Mobile data")}: ${formatBytes(mobile)}"
         }
         val months = dates.map { it.substring(0, 7) }.distinct().sortedDescending().take(12)
         val monthlyLines = months.map { month ->
@@ -827,7 +827,7 @@ class MainActivity : Activity() {
                 if (wifi >= 0L) wifiTotal += wifi
                 if (mobile >= 0L) mobileTotal += mobile
             }
-            "$month\n  Wi-Fi: ${formatBytes(wifiTotal)}   •   ${tr(tr("Mobile data"))}: ${formatBytes(mobileTotal)}"
+            "$month\n  Wi-Fi: ${formatBytes(wifiTotal)}   •   ${tr("Mobile data")}: ${formatBytes(mobileTotal)}"
         }
         val message = buildString {
             append(tr("DAILY HISTORY")); append("\n")
