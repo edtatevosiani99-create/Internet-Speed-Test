@@ -284,6 +284,8 @@ class TrafficActivity : Activity() {
             content.addView(label(tr("No traffic data available yet. Check Usage access in Android Settings."), 13f, Color.LTGRAY), matchWrap())
         }
 
+        addDailyScale(todayKey)
+
         val table = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = panelBackground()
@@ -326,6 +328,72 @@ class TrafficActivity : Activity() {
             content.addView(card, matchWrap().apply { bottomMargin = dp(8) })
         }
         content.addView(label(tr("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button."), 11f, Color.rgb(125, 145, 170)), matchWrap().apply { topMargin = dp(10) })
+    }
+
+    private fun addDailyScale(todayKey: String) {
+        val mobile = historyPrefs.getLong(todayKey + "_mobile", -1L)
+        val wifi = historyPrefs.getLong(todayKey + "_wifi", -1L)
+        val total = if (mobile >= 0L && wifi >= 0L) mobile + wifi else -1L
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = panelBackground()
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+        }
+        val dateTitle = try {
+            SimpleDateFormat("EEE, dd MMM", selectedLocale()).format(Date())
+        } catch (_: Exception) { todayKey }
+        card.addView(label(dateTitle, 15f, Color.WHITE, true), matchWrap().apply { bottomMargin = dp(12) })
+
+        val scaleMax = maxOf(total, mobile, wifi, 1L)
+        fun addBar(title: String, bytes: Long, color: Int) {
+            val row = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            val top = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            top.addView(label(title, 12f, Color.rgb(205, 220, 238)), LinearLayout.LayoutParams(0, -2, 1f))
+            top.addView(label(formatBytes(bytes), 12f, color, true), matchWrap())
+            row.addView(top, matchWrap())
+            val track = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = dp(5).toFloat()
+                    setColor(Color.rgb(30, 43, 65))
+                }
+                clipToOutline = true
+            }
+            val fraction = if (bytes < 0L) 0f else (bytes.toDouble() / scaleMax.toDouble()).toFloat().coerceIn(0f, 1f)
+            val fill = TextView(this).apply {
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = dp(5).toFloat()
+                    setColor(color)
+                }
+            }
+            track.addView(fill, LinearLayout.LayoutParams(0, dp(9), fraction.coerceAtLeast(0.001f)))
+            if (fraction < 1f) track.addView(TextView(this), LinearLayout.LayoutParams(0, dp(9), (1f - fraction).coerceAtLeast(0.001f)))
+            row.addView(track, matchWrap().apply { topMargin = dp(6) })
+            card.addView(row, matchWrap().apply { bottomMargin = dp(12) })
+        }
+
+        addBar(tr("Mob"), mobile, cyan)
+        addBar(tr("WiFi"), wifi, Color.rgb(93, 148, 255))
+        addBar(tr("Total"), total, Color.rgb(96, 235, 177))
+
+        val scale = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        listOf("0%", "25%", "50%", "75%", "100%").forEach { tick ->
+            scale.addView(TextView(this).apply {
+                text = tick
+                textSize = 10f
+                setTextColor(Color.rgb(125, 145, 170))
+                gravity = Gravity.CENTER
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        card.addView(scale, matchWrap())
+        content.addView(card, matchWrap().apply { bottomMargin = dp(14) })
     }
 
     private fun tableRow(date: String, mobile: String, wifi: String, total: String, highlighted: Boolean): LinearLayout {
