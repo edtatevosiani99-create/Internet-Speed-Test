@@ -300,10 +300,7 @@ class MainActivity : Activity() {
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> showHistoryDialog()
-                5 -> {
-                    if (hasUsageAccess()) startActivity(Intent(this, TrafficActivity::class.java))
-                    else openUsageAccessSettings()
-                }
+                5 -> startActivity(Intent(this, TrafficActivity::class.java))
                 2 -> AlertDialog.Builder(this)
                     .setTitle("Internet Speed Test")
                     .setMessage("Test download, upload, ping and jitter. View connection details and recent test history.\n\nVersion 1.0")
