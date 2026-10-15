@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.view.WindowInsets
 import android.widget.PopupMenu
 import android.widget.Button
 import android.widget.LinearLayout
@@ -64,6 +65,23 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding(dp(20), dp(22), dp(20), dp(24))
             setBackgroundColor(bg)
+        }
+        // Respect system-bar insets so the app content starts below Android's notification/status bar.
+        root.setOnApplyWindowInsetsListener { view, insets ->
+            val topInset: Int
+            val bottomInset: Int
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                topInset = insets.getInsets(WindowInsets.Type.statusBars()).top
+                bottomInset = insets.getInsets(WindowInsets.Type.navigationBars()).bottom
+            } else {
+                @Suppress("DEPRECATION")
+                run {
+                    topInset = insets.systemWindowInsetTop
+                    bottomInset = insets.systemWindowInsetBottom
+                }
+            }
+            view.setPadding(dp(20), dp(12) + topInset, dp(20), dp(16) + bottomInset)
+            insets
         }
         val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         val menuButton = TextView(this).apply {
