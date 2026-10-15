@@ -1,6 +1,7 @@
 package com.edtatevosiani99.internetspeedtest
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -9,6 +10,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
+import android.widget.PopupMenu
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -54,10 +57,22 @@ class MainActivity : Activity() {
             setPadding(dp(20), dp(22), dp(20), dp(24))
             setBackgroundColor(bg)
         }
-        root.addView(TextView(this).apply {
-            text = "INTERNET SPEED TEST"; textSize = 22f; setTextColor(Color.WHITE)
+        val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        val menuButton = TextView(this).apply {
+            text = "⋮"; textSize = 27f; typeface = Typeface.DEFAULT_BOLD
+            setTextColor(cyan); gravity = Gravity.CENTER
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = dp(9).toFloat(); setColor(panel); setStroke(dp(1), cyan)
+            }
+            setOnClickListener { showAppMenu(this) }
+        }
+        header.addView(menuButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(8) })
+        header.addView(TextView(this).apply {
+            text = "INTERNET SPEED TEST"; textSize = 20f; setTextColor(Color.WHITE)
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD); gravity = Gravity.CENTER
-        }, matchWrap())
+        }, LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(View(this), LinearLayout.LayoutParams(dp(42), dp(42)))
+        root.addView(header, LinearLayout.LayoutParams(-1, dp(46)))
         root.addView(TextView(this).apply {
             text = "MEASURE YOUR CONNECTION"; textSize = 11f; letterSpacing = 0.18f
             setTextColor(cyan); gravity = Gravity.CENTER
