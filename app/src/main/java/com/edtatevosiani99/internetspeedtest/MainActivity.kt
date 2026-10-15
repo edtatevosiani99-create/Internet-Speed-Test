@@ -68,18 +68,14 @@ class MainActivity : Activity() {
         }
         // Respect system-bar insets so the app content starts below Android's notification/status bar.
         root.setOnApplyWindowInsetsListener { view, insets ->
-            val topInset: Int
-            val bottomInset: Int
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                topInset = insets.getInsets(WindowInsets.Type.statusBars()).top
-                bottomInset = insets.getInsets(WindowInsets.Type.navigationBars()).bottom
-            } else {
-                @Suppress("DEPRECATION")
-                run {
-                    topInset = insets.systemWindowInsetTop
-                    bottomInset = insets.systemWindowInsetBottom
-                }
-            }
+            @Suppress("DEPRECATION")
+            val topInset = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                insets.getInsets(WindowInsets.Type.statusBars()).top
+            } else insets.systemWindowInsetTop
+            @Suppress("DEPRECATION")
+            val bottomInset = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                insets.getInsets(WindowInsets.Type.navigationBars()).bottom
+            } else insets.systemWindowInsetBottom
             view.setPadding(dp(20), dp(12) + topInset, dp(20), dp(16) + bottomInset)
             insets
         }
