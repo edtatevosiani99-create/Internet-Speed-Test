@@ -3,6 +3,8 @@ package com.edtatevosiani99.internetspeedtest
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.AppOpsManager
+import android.app.usage.NetworkStatsManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.Intent
@@ -13,6 +15,8 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.telephony.TelephonyManager
 import android.os.Build
+import android.os.Process
+import android.provider.Settings
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -41,6 +45,7 @@ class MainActivity : Activity() {
     private lateinit var networkInfo: TextView
     private lateinit var headerNetwork: TextView
     private lateinit var historyText: TextView
+    private lateinit var trafficUsageText: TextView
     private lateinit var startButton: Button
     private lateinit var shareButton: Button
     private var lastResult = ""
@@ -166,6 +171,17 @@ class MainActivity : Activity() {
             textSize = 13f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
         }
+        addSectionTitle(content, "DATA USAGE")
+        trafficUsageText = TextView(this).apply {
+            textSize = 13f
+            setTextColor(Color.rgb(205, 220, 238))
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = panelBackground()
+            setOnClickListener { openUsageAccessSettings() }
+        }
+        content.addView(trafficUsageText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        refreshTrafficUsage()
+
         addSectionTitle(content, "RECENT TESTS")
         historyText = TextView(this).apply {
             textSize = 12f; setTextColor(Color.rgb(205, 220, 238))
@@ -312,9 +328,9 @@ class MainActivity : Activity() {
     private fun tr(text: String): String {
         val lang = prefs.getString("language", "en") ?: "en"
         val dict = mapOf(
-            "ru" to mapOf("INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
-            "ka" to mapOf("INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
-            "de" to mapOf("INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
+            "ru" to mapOf("DATA USAGE" to "РАСХОД ТРАФИКА", "TODAY" to "СЕГОДНЯ", "THIS MONTH" to "ЗА МЕСЯЦ", "Wi-Fi" to "Wi-Fi", "Mobile data" to "Мобильный интернет", "Tap to refresh traffic statistics" to "Нажмите, чтобы обновить статистику", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Учитывайте весь трафик телефона отдельно для Wi-Fi и мобильной сети. Нажмите, чтобы разрешить доступ к статистике.", "Loading traffic statistics…" to "Загрузка статистики трафика…", "Unavailable" to "Недоступно", "Traffic statistics refreshed" to "Статистика трафика обновлена", "Open Android Settings and allow Usage access" to "Откройте настройки Android и разрешите доступ к статистике", "INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
+            "ka" to mapOf("DATA USAGE" to "ტრაფიკის გამოყენება", "TODAY" to "დღეს", "THIS MONTH" to "ამ თვეში", "Wi-Fi" to "Wi-Fi", "Mobile data" to "მობილური ინტერნეტი", "Tap to refresh traffic statistics" to "შეეხეთ სტატისტიკის განახლებას", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "ტელეფონის მთელი ტრაფიკის აღრიცხვა Wi-Fi-სა და მობილურ ინტერნეტზე ცალ-ცალკე. შეეხეთ სტატისტიკაზე წვდომის დასაშვებად.", "Loading traffic statistics…" to "ტრაფიკის სტატისტიკის ჩატვირთვა…", "Unavailable" to "მიუწვდომელია", "Traffic statistics refreshed" to "ტრაფიკის სტატისტიკა განახლდა", "Open Android Settings and allow Usage access" to "გახსენით Android-ის პარამეტრები და დაუშვით სტატისტიკაზე წვდომა", "INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
+            "de" to mapOf("DATA USAGE" to "DATENVERBRAUCH", "TODAY" to "HEUTE", "THIS MONTH" to "DIESEN MONAT", "Wi-Fi" to "WLAN", "Mobile data" to "Mobile Daten", "Tap to refresh traffic statistics" to "Tippen, um die Statistik zu aktualisieren", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Gesamten Datenverbrauch getrennt für WLAN und mobile Daten erfassen. Tippen, um den Zugriff zu erlauben.", "Loading traffic statistics…" to "Datenstatistik wird geladen…", "Unavailable" to "Nicht verfügbar", "Traffic statistics refreshed" to "Datenstatistik aktualisiert", "Open Android Settings and allow Usage access" to "Öffne die Android-Einstellungen und erlaube den Nutzungszugriff", "INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
             "es" to mapOf("INTERNET SPEED TEST" to "VELOCIDAD DE INTERNET", "MEASURE YOUR CONNECTION" to "MIDE TU CONEXIÓN", "Ready to test" to "Listo para probar", "DOWNLOAD" to "DESCARGA", "UPLOAD" to "SUBIDA", "START TEST" to "INICIAR PRUEBA", "TEST AGAIN" to "REPETIR PRUEBA", "SHARE RESULTS" to "COMPARTIR RESULTADOS", "RECENT TESTS" to "PRUEBAS RECIENTES"),
             "fr" to mapOf("INTERNET SPEED TEST" to "TEST DE VITESSE INTERNET", "MEASURE YOUR CONNECTION" to "MESUREZ VOTRE CONNEXION", "Ready to test" to "Prêt à tester", "DOWNLOAD" to "TÉLÉCHARGEMENT", "UPLOAD" to "ENVOI", "START TEST" to "LANCER LE TEST", "TEST AGAIN" to "REFAIRE LE TEST", "SHARE RESULTS" to "PARTAGER LES RÉSULTATS", "RECENT TESTS" to "TESTS RÉCENTS"),
             "it" to mapOf("INTERNET SPEED TEST" to "TEST VELOCITÀ INTERNET", "MEASURE YOUR CONNECTION" to "MISURA LA CONNESSIONE", "Ready to test" to "Pronto per il test", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "AVVIA TEST", "TEST AGAIN" to "RIPETI TEST", "SHARE RESULTS" to "CONDIVIDI RISULTATI", "RECENT TESTS" to "TEST RECENTI"),
@@ -497,6 +513,84 @@ class MainActivity : Activity() {
             }
             headerNetwork.contentDescription = type
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::trafficUsageText.isInitialized) refreshTrafficUsage()
+    }
+
+    private fun hasUsageAccess(): Boolean {
+        val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        @Suppress("DEPRECATION")
+        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), packageName)
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun openUsageAccessSettings() {
+        if (hasUsageAccess()) {
+            refreshTrafficUsage()
+            Toast.makeText(this, tr("Traffic statistics refreshed"), Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        } catch (_: Exception) {
+            Toast.makeText(this, tr("Open Android Settings and allow Usage access"), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun refreshTrafficUsage() {
+        if (!::trafficUsageText.isInitialized) return
+        if (!hasUsageAccess()) {
+            trafficUsageText.text = tr("Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access.")
+            return
+        }
+        trafficUsageText.text = tr("Loading traffic statistics…")
+        thread {
+            val now = System.currentTimeMillis()
+            val calendar = java.util.Calendar.getInstance().apply { timeInMillis = now }
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+            calendar.set(java.util.Calendar.MINUTE, 0)
+            calendar.set(java.util.Calendar.SECOND, 0)
+            calendar.set(java.util.Calendar.MILLISECOND, 0)
+            val dayStart = calendar.timeInMillis
+            calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            val monthStart = calendar.timeInMillis
+
+            fun totalBytes(type: Int, start: Long): Long {
+                val manager = getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
+                val bucket = manager.querySummaryForDevice(type, null, start, now)
+                return bucket.rxBytes + bucket.txBytes
+            }
+            fun readUsage(start: Long): Pair<Long, Long> {
+                val wifi = try { totalBytes(ConnectivityManager.TYPE_WIFI, start) } catch (_: Exception) { -1L }
+                val mobile = try { totalBytes(ConnectivityManager.TYPE_MOBILE, start) } catch (_: Exception) { -1L }
+                return Pair(wifi, mobile)
+            }
+            val today = readUsage(dayStart)
+            val month = readUsage(monthStart)
+            runOnUiThread {
+                if (!::trafficUsageText.isInitialized) return@runOnUiThread
+                trafficUsageText.text = tr("TODAY") + "\n" +
+                    tr("Wi-Fi") + ": " + formatBytes(today.first) + "   •   " +
+                    tr("Mobile data") + ": " + formatBytes(today.second) + "\n\n" +
+                    tr("THIS MONTH") + "\n" +
+                    tr("Wi-Fi") + ": " + formatBytes(month.first) + "   •   " +
+                    tr("Mobile data") + ": " + formatBytes(month.second) + "\n\n" +
+                    tr("Tap to refresh traffic statistics")
+            }
+        }
+    }
+
+    private fun formatBytes(bytes: Long): String {
+        if (bytes < 0L) return tr("Unavailable")
+        if (bytes < 1024L) return "$bytes B"
+        val kb = bytes / 1024.0
+        if (kb < 1024.0) return String.format(java.util.Locale.US, "%.1f KB", kb)
+        val mb = kb / 1024.0
+        if (mb < 1024.0) return String.format(java.util.Locale.US, "%.1f MB", mb)
+        return String.format(java.util.Locale.US, "%.2f GB", mb / 1024.0)
     }
 
     private fun refreshHistory() {
