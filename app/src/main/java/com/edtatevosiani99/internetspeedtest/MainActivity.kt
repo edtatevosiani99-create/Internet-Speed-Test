@@ -125,18 +125,8 @@ class MainActivity : Activity() {
             setTextColor(cyan); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(28)))
 
-        content.addView(TextView(this).apply {
-            text = "◉"; textSize = 58f; setTextColor(cyan); gravity = Gravity.CENTER
-            setShadowLayer(dp(16).toFloat(), 0f, 0f, cyan)
-            background = android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
-                intArrayOf(Color.rgb(18, 47, 83), Color.rgb(8, 17, 35))
-            ).apply {
-                shape = android.graphics.drawable.GradientDrawable.OVAL
-                setStroke(dp(2), cyan)
-            }
-        }, LinearLayout.LayoutParams(dp(126), dp(126)).apply {
-            gravity = Gravity.CENTER; topMargin = dp(18); bottomMargin = dp(8)
+        content.addView(AnimatedGlobeView(this), LinearLayout.LayoutParams(dp(184), dp(154)).apply {
+            gravity = Gravity.CENTER; topMargin = dp(7); bottomMargin = dp(0)
         })
         status = TextView(this).apply {
             text = tr("Ready to test"); textSize = 14f; setTextColor(Color.LTGRAY); gravity = Gravity.CENTER
