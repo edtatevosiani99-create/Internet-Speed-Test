@@ -46,6 +46,105 @@ class TrafficActivity : Activity() {
         }
     }
 
+
+    private fun tr(value: String): String {
+        val lang = getSharedPreferences("speed_test", MODE_PRIVATE).getString("language", "en") ?: "en"
+        val common = mapOf(
+            "ru" to mapOf(
+                "INTERNET TRAFFIC" to "ИНТЕРНЕТ-ТРАФИК", "Daily mobile and Wi-Fi usage" to "Ежедневный расход мобильного интернета и Wi-Fi",
+                "Updating traffic history…" to "Обновление истории трафика…", "Traffic history" to "История трафика",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "На этой странице показан ежедневный и ежемесячный расход мобильного интернета и Wi-Fi отдельно. Сначала Android требует разрешить доступ к статистике. Эта страница останется открытой и не будет перенаправлять вас автоматически.",
+                "ALLOW USAGE ACCESS" to "РАЗРЕШИТЬ ДОСТУП К СТАТИСТИКЕ",
+                "Open Android Settings and allow Usage access" to "Откройте настройки Android и разрешите доступ к статистике",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "После разрешения доступа вернитесь на эту страницу. Статистика загрузится автоматически. В приложении нет кнопки удаления истории трафика.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Данные о трафике пока недоступны. Проверьте доступ к статистике в настройках Android.",
+                "Date" to "Дата", "Mob" to "Моб.", "WiFi" to "Wi-Fi", "Total" to "Всего", "This month history" to "По месяцам",
+                "Mob" to "Моб.", "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "История хранится на этом телефоне. Данные за последние дни обновляются по статистике Android; более ранние сохранённые дни доступны. В приложении нет кнопки удаления.",
+                "Unavailable" to "Недоступно"
+            ),
+            "ka" to mapOf(
+                "INTERNET TRAFFIC" to "ინტერნეტ ტრაფიკი", "Daily mobile and Wi-Fi usage" to "მობილური ინტერნეტისა და Wi-Fi-ის ყოველდღიური გამოყენება",
+                "Updating traffic history…" to "ტრაფიკის ისტორია ახლდება…", "Traffic history" to "ტრაფიკის ისტორია",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "ამ გვერდზე ნაჩვენებია ტელეფონის ყოველდღიური და თვიური ტრაფიკი ცალ-ცალკე მობილური ინტერნეტისა და Wi-Fi-ისთვის. Android მოითხოვს სტატისტიკაზე წვდომის ნებართვას. ეს გვერდი ღია დარჩება და ავტომატურად არ გადაგამისამართებთ.",
+                "ALLOW USAGE ACCESS" to "სტატისტიკაზე წვდომის დაშვება",
+                "Open Android Settings and allow Usage access" to "გახსენით Android-ის პარამეტრები და დაუშვით სტატისტიკაზე წვდომა",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "წვდომის ჩართვის შემდეგ დაბრუნდით ამ გვერდზე. სტატისტიკა ავტომატურად ჩაიტვირთება. აპლიკაციაში ტრაფიკის ისტორიის წაშლის ღილაკი არ არის.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "ტრაფიკის მონაცემები ჯერ არ არის. შეამოწმეთ სტატისტიკაზე წვდომა Android-ის პარამეტრებში.",
+                "Date" to "თარიღი", "Mob" to "მობ.", "WiFi" to "Wi-Fi", "Total" to "ჯამი", "This month history" to "თვეების მიხედვით",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "ისტორია ამ ტელეფონში ინახება. ბოლო დღეების მონაცემები Android-ის სტატისტიკის მიხედვით ახლდება; ძველი დღეებიც ხელმისაწვდომია. აპლიკაციაში წაშლის ღილაკი არ არის.",
+                "Unavailable" to "მიუწვდომელია"
+            ),
+            "de" to mapOf(
+                "INTERNET TRAFFIC" to "INTERNETDATENVERBRAUCH", "Daily mobile and Wi-Fi usage" to "Täglicher Verbrauch von mobilen Daten und WLAN",
+                "Updating traffic history…" to "Datenverlauf wird aktualisiert…", "Traffic history" to "Datenverlauf",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "Diese Seite zeigt den täglichen und monatlichen Datenverbrauch getrennt nach mobilen Daten und WLAN. Android benötigt zuerst die Berechtigung für den Nutzungszugriff. Diese Seite bleibt geöffnet und leitet Sie nicht automatisch weiter.",
+                "ALLOW USAGE ACCESS" to "NUTZUNGSZUGRIFF ERLAUBEN",
+                "Open Android Settings and allow Usage access" to "Öffnen Sie die Android-Einstellungen und erlauben Sie den Nutzungszugriff",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "Kehren Sie nach der Freigabe zu dieser Seite zurück. Die Statistik wird automatisch geladen. Die App bietet keine Schaltfläche zum Löschen des Datenverlaufs.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Noch keine Daten verfügbar. Prüfen Sie den Nutzungszugriff in den Android-Einstellungen.",
+                "Date" to "Datum", "Mob" to "Mobil", "WiFi" to "WLAN", "Total" to "Gesamt", "This month history" to "Monatsübersicht",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "Der Verlauf wird auf diesem Telefon gespeichert. Aktuelle Tageswerte werden anhand der Android-Statistik aktualisiert; ältere gespeicherte Tage bleiben verfügbar. Es gibt keine Löschtaste.",
+                "Unavailable" to "Nicht verfügbar"
+            ),
+            "es" to mapOf(
+                "INTERNET TRAFFIC" to "TRÁFICO DE INTERNET", "Daily mobile and Wi-Fi usage" to "Uso diario de datos móviles y Wi-Fi",
+                "Updating traffic history…" to "Actualizando el historial de tráfico…", "Traffic history" to "Historial de tráfico",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "Esta página muestra el tráfico diario y mensual del teléfono, separado entre datos móviles y Wi-Fi. Android requiere permitir primero el acceso al uso. Esta página permanecerá abierta y no te redirigirá automáticamente.",
+                "ALLOW USAGE ACCESS" to "PERMITIR ACCESO DE USO", "Open Android Settings and allow Usage access" to "Abre Ajustes de Android y permite el acceso al uso",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "Después de habilitar el acceso, vuelve a esta página. Las estadísticas se cargarán automáticamente. La app no ofrece un botón para borrar el historial.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Aún no hay datos de tráfico. Comprueba el acceso al uso en Ajustes de Android.",
+                "Date" to "Fecha", "Mob" to "Móvil", "WiFi" to "Wi-Fi", "Total" to "Total", "This month history" to "Historial mensual",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "El historial se guarda en este teléfono. Los totales recientes se actualizan con las estadísticas de Android; los días anteriores siguen disponibles. La app no tiene botón para borrar.",
+                "Unavailable" to "No disponible"
+            ),
+            "fr" to mapOf(
+                "INTERNET TRAFFIC" to "TRAFIC INTERNET", "Daily mobile and Wi-Fi usage" to "Utilisation quotidienne des données mobiles et du Wi-Fi",
+                "Updating traffic history…" to "Mise à jour de l’historique du trafic…", "Traffic history" to "Historique du trafic",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "Cette page affiche le trafic quotidien et mensuel du téléphone, séparé entre données mobiles et Wi-Fi. Android exige d’autoriser l’accès à l’utilisation. Cette page restera ouverte sans redirection automatique.",
+                "ALLOW USAGE ACCESS" to "AUTORISER L’ACCÈS À L’UTILISATION", "Open Android Settings and allow Usage access" to "Ouvrez les paramètres Android et autorisez l’accès à l’utilisation",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "Après avoir autorisé l’accès, revenez à cette page. Les statistiques se chargeront automatiquement. L’application ne propose pas de bouton pour effacer l’historique.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Aucune donnée de trafic pour le moment. Vérifiez l’accès à l’utilisation dans les paramètres Android.",
+                "Date" to "Date", "Mob" to "Mobile", "WiFi" to "Wi-Fi", "Total" to "Total", "This month history" to "Historique mensuel",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "L’historique est enregistré sur ce téléphone. Les totaux récents sont actualisés depuis les statistiques Android ; les jours plus anciens restent disponibles. Aucun bouton de suppression n’est proposé.",
+                "Unavailable" to "Indisponible"
+            ),
+            "it" to mapOf(
+                "INTERNET TRAFFIC" to "TRAFFICO INTERNET", "Daily mobile and Wi-Fi usage" to "Utilizzo giornaliero di dati mobili e Wi-Fi",
+                "Updating traffic history…" to "Aggiornamento cronologia traffico…", "Traffic history" to "Cronologia traffico",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "Questa pagina mostra il traffico giornaliero e mensile del telefono, separato tra dati mobili e Wi-Fi. Android richiede prima l’autorizzazione all’accesso utilizzo. La pagina resterà aperta senza reindirizzamento automatico.",
+                "ALLOW USAGE ACCESS" to "CONSENTI ACCESSO UTILIZZO", "Open Android Settings and allow Usage access" to "Apri le impostazioni Android e consenti l’accesso utilizzo",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "Dopo aver abilitato l’accesso, torna a questa pagina. Le statistiche si caricheranno automaticamente. L’app non offre un pulsante per cancellare la cronologia.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Nessun dato sul traffico disponibile. Controlla l’accesso utilizzo nelle impostazioni Android.",
+                "Date" to "Data", "Mob" to "Mobile", "WiFi" to "Wi-Fi", "Total" to "Totale", "This month history" to "Riepilogo mensile",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "La cronologia è salvata su questo telefono. I totali recenti vengono aggiornati dalle statistiche Android; i giorni precedenti restano disponibili. Non è presente un pulsante di eliminazione.",
+                "Unavailable" to "Non disponibile"
+            ),
+            "tr" to mapOf(
+                "INTERNET TRAFFIC" to "İNTERNET TRAFİĞİ", "Daily mobile and Wi-Fi usage" to "Günlük mobil veri ve Wi-Fi kullanımı",
+                "Updating traffic history…" to "Trafik geçmişi güncelleniyor…", "Traffic history" to "Trafik geçmişi",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "Bu sayfa telefonun günlük ve aylık trafiğini mobil veri ve Wi-Fi olarak ayrı gösterir. Android önce kullanım erişimine izin verilmesini ister. Sayfa açık kalır ve otomatik yönlendirme yapmaz.",
+                "ALLOW USAGE ACCESS" to "KULLANIM ERİŞİMİNE İZİN VER", "Open Android Settings and allow Usage access" to "Android Ayarları'nı açın ve kullanım erişimine izin verin",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "Erişimi açtıktan sonra bu sayfaya dönün. İstatistikler otomatik yüklenir. Uygulamada trafik geçmişini silme düğmesi yoktur.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Henüz trafik verisi yok. Android Ayarları'ndaki kullanım erişimini kontrol edin.",
+                "Date" to "Tarih", "Mob" to "Mobil", "WiFi" to "Wi-Fi", "Total" to "Toplam", "This month history" to "Aylık geçmiş",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "Geçmiş bu telefonda saklanır. Son günlerin toplamları Android istatistiklerinden yenilenir; eski günler de kullanılabilir. Silme düğmesi yoktur.",
+                "Unavailable" to "Kullanılamıyor"
+            ),
+            "uk" to mapOf(
+                "INTERNET TRAFFIC" to "ІНТЕРНЕТ-ТРАФІК", "Daily mobile and Wi-Fi usage" to "Щоденне використання мобільних даних і Wi-Fi",
+                "Updating traffic history…" to "Оновлення історії трафіку…", "Traffic history" to "Історія трафіку",
+                "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically." to "На цій сторінці показано щоденний і місячний трафік телефону окремо для мобільних даних і Wi-Fi. Android спочатку потребує дозволу на доступ до статистики. Сторінка залишиться відкритою без автоматичного перенаправлення.",
+                "ALLOW USAGE ACCESS" to "ДОЗВОЛИТИ ДОСТУП ДО СТАТИСТИКИ", "Open Android Settings and allow Usage access" to "Відкрийте налаштування Android і дозвольте доступ до статистики",
+                "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history." to "Після надання доступу поверніться на цю сторінку. Статистика завантажиться автоматично. У застосунку немає кнопки видалення історії трафіку.",
+                "No traffic data available yet. Check Usage access in Android Settings." to "Дані про трафік поки недоступні. Перевірте доступ до статистики в налаштуваннях Android.",
+                "Date" to "Дата", "Mob" to "Моб.", "WiFi" to "Wi-Fi", "Total" to "Усього", "This month history" to "За місяцями",
+                "History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button." to "Історія зберігається на цьому телефоні. Дані за останні дні оновлюються за статистикою Android; старіші дні залишаються доступними. Кнопки видалення немає.",
+                "Unavailable" to "Недоступно"
+            )
+        )
+        return common[lang]?.get(value) ?: value
+    }
+
     private fun buildPage() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -67,7 +166,7 @@ class TrafficActivity : Activity() {
         }
         header.addView(back, LinearLayout.LayoutParams(dp(46), dp(46)).apply { rightMargin = dp(10) })
         header.addView(TextView(this).apply {
-            text = "INTERNET TRAFFIC"; textSize = 19f; typeface = Typeface.DEFAULT_BOLD
+            text = tr("INTERNET TRAFFIC"); textSize = 19f; typeface = Typeface.DEFAULT_BOLD
             setTextColor(Color.WHITE); gravity = Gravity.CENTER_VERTICAL
         }, LinearLayout.LayoutParams(0, -2, 1f))
         val refresh = TextView(this).apply {
@@ -77,7 +176,7 @@ class TrafficActivity : Activity() {
         header.addView(refresh, LinearLayout.LayoutParams(dp(46), dp(46)))
         root.addView(header, LinearLayout.LayoutParams(-1, dp(52)))
         root.addView(TextView(this).apply {
-            text = "Daily mobile and Wi-Fi usage"; textSize = 13f; setTextColor(Color.LTGRAY)
+            text = tr("Daily mobile and Wi-Fi usage"); textSize = 13f; setTextColor(Color.LTGRAY)
         }, LinearLayout.LayoutParams(-1, dp(30)).apply { topMargin = dp(5) })
 
         val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }
@@ -98,7 +197,7 @@ class TrafficActivity : Activity() {
             return
         }
         content.removeAllViews()
-        content.addView(label("Updating traffic history…", 14f, Color.LTGRAY), matchWrap().apply { bottomMargin = dp(12) })
+        content.addView(label(tr("Updating traffic history…"), 14f, Color.LTGRAY), matchWrap().apply { bottomMargin = dp(12) })
         Thread {
             val now = System.currentTimeMillis()
             val todayStart = startOfDay(now)
@@ -126,13 +225,13 @@ class TrafficActivity : Activity() {
             background = panelBackground()
             setPadding(dp(16), dp(18), dp(16), dp(18))
         }
-        card.addView(label("Traffic history", 19f, Color.WHITE, true), matchWrap())
+        card.addView(label(tr("Traffic history"), 19f, Color.WHITE, true), matchWrap())
         card.addView(label(
-            "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically.",
+            tr("This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically."),
             14f, Color.rgb(205, 220, 238)
         ), matchWrap().apply { topMargin = dp(12) })
         val allow = TextView(this).apply {
-            text = "ALLOW USAGE ACCESS"
+            text = tr("ALLOW USAGE ACCESS")
             textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(bg)
@@ -146,14 +245,14 @@ class TrafficActivity : Activity() {
                 try {
                     startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
                 } catch (_: Exception) {
-                    Toast.makeText(this@TrafficActivity, "Open Android Settings and allow Usage access", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@TrafficActivity, tr("Open Android Settings and allow Usage access"), Toast.LENGTH_LONG).show()
                 }
             }
         }
         card.addView(allow, matchWrap().apply { topMargin = dp(16) })
         content.addView(card, matchWrap().apply { topMargin = dp(10) })
         content.addView(label(
-            "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history.",
+            tr("After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history."),
             12f, Color.rgb(125, 145, 170)
         ), matchWrap().apply { topMargin = dp(14) })
     }
@@ -165,7 +264,7 @@ class TrafficActivity : Activity() {
         }.distinct().sortedDescending()
         val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         if (allDates.none { it == todayKey }) {
-            content.addView(label("No traffic data available yet. Check Usage access in Android Settings.", 13f, Color.LTGRAY), matchWrap())
+            content.addView(label(tr("No traffic data available yet. Check Usage access in Android Settings."), 13f, Color.LTGRAY), matchWrap())
         }
 
         val table = LinearLayout(this).apply {
@@ -173,7 +272,7 @@ class TrafficActivity : Activity() {
             background = panelBackground()
             setPadding(dp(8), dp(8), dp(8), dp(8))
         }
-        table.addView(tableRow("Date", "Mob", "WiFi", "Total", true))
+        table.addView(tableRow(tr("Date"), tr("Mob"), tr("WiFi"), tr("Total"), true))
         allDates.take(90).forEach { date ->
             val wifi = historyPrefs.getLong(date + "_wifi", -1L)
             val mobile = historyPrefs.getLong(date + "_mobile", -1L)
@@ -184,7 +283,7 @@ class TrafficActivity : Activity() {
         }
         content.addView(table, matchWrap())
 
-        content.addView(label("За месяц", 16f, cyan, true), matchWrap().apply { topMargin = dp(22); bottomMargin = dp(8) })
+        content.addView(label(tr("This month history"), 16f, cyan, true), matchWrap().apply { topMargin = dp(22); bottomMargin = dp(8) })
         val monthly = allDates.map { it.substring(0, 7) }.distinct().sortedDescending().take(12)
         monthly.forEach { month ->
             var wifi = 0L
@@ -204,12 +303,12 @@ class TrafficActivity : Activity() {
                 setPadding(dp(12), dp(10), dp(12), dp(10))
             }
             card.addView(label(monthName, 14f, Color.WHITE, true), matchWrap())
-            card.addView(label("Mob: " + if (mobileKnown) formatBytes(mobile) else "—", 12f, Color.rgb(205, 220, 238)), matchWrap().apply { topMargin = dp(4) })
-            card.addView(label("WiFi: " + if (wifiKnown) formatBytes(wifi) else "—", 12f, Color.rgb(205, 220, 238)), matchWrap().apply { topMargin = dp(2) })
-            card.addView(label("Total: " + formatBytes(total), 13f, cyan, true), matchWrap().apply { topMargin = dp(4) })
+            card.addView(label(tr("Mob") + ": " + if (mobileKnown) formatBytes(mobile) else "—", 12f, Color.rgb(205, 220, 238)), matchWrap().apply { topMargin = dp(4) })
+            card.addView(label(tr("WiFi") + ": " + if (wifiKnown) formatBytes(wifi) else "—", 12f, Color.rgb(205, 220, 238)), matchWrap().apply { topMargin = dp(2) })
+            card.addView(label(tr("Total") + ": " + formatBytes(total), 13f, cyan, true), matchWrap().apply { topMargin = dp(4) })
             content.addView(card, matchWrap().apply { bottomMargin = dp(8) })
         }
-        content.addView(label("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button.", 11f, Color.rgb(125, 145, 170)), matchWrap().apply { topMargin = dp(10) })
+        content.addView(label(tr("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button."), 11f, Color.rgb(125, 145, 170)), matchWrap().apply { topMargin = dp(10) })
     }
 
     private fun tableRow(date: String, mobile: String, wifi: String, total: String, highlighted: Boolean): LinearLayout {
@@ -261,7 +360,7 @@ class TrafficActivity : Activity() {
     }
 
     private fun formatBytes(bytes: Long): String {
-        if (bytes < 0L) return "Unavailable"
+        if (bytes < 0L) return tr("Unavailable")
         if (bytes < 1024L) return "$bytes B"
         val kb = bytes / 1024.0
         if (kb < 1024.0) return String.format(Locale.US, "%.1f KB", kb)
