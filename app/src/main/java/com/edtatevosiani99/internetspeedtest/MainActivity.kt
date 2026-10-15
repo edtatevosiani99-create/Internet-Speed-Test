@@ -101,7 +101,7 @@ class MainActivity : Activity() {
         }
         header.addView(menuButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(8) })
         header.addView(TextView(this).apply {
-            text = tr("INTERNET SPEED TEST"); textSize = 17f; setTextColor(Color.WHITE)
+            text = "INTERNET SPEED TEST"; textSize = 17f; setTextColor(Color.WHITE)
             maxLines = 1; isSingleLine = true; includeFontPadding = false
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(0, -2, 1f))
@@ -161,7 +161,7 @@ class MainActivity : Activity() {
                     val send = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"; putExtra(Intent.EXTRA_TEXT, lastResult)
                     }
-                    startActivity(Intent.createChooser(send, "Share speed test results"))
+                    startActivity(Intent.createChooser(send, tr("Share speed test results")))
                 }
             }
         }
@@ -206,7 +206,7 @@ class MainActivity : Activity() {
     private fun runTest() {
         startButton.isEnabled = false; startButton.text = tr("TESTING...")
         shareButton.isEnabled = false
-        status.text = "Checking latency (1/5)..."
+        status.text = tr("Checking latency") + " (1/5)..."
         pingValue.text = "…"; downloadValue.text = "…"; uploadValue.text = "…"
         jitterValue.text = "…"
         thread {
@@ -223,13 +223,13 @@ class MainActivity : Activity() {
                         samples.add((System.nanoTime() - started) / 1_000_000.0)
                     } catch (_: Exception) { /* Ignore failed latency sample. */ }
                     val n = i
-                    runOnUiThread { status.text = "Checking latency ($n/5)..." }
+                    runOnUiThread { status.text = tr("Checking latency") + " ($n/5)..." }
                 }
                 if (samples.isEmpty()) throw IllegalStateException("Could not reach the test server")
                 val ping = samples.average()
                 val jitter = if (samples.size > 1) samples.zipWithNext { a, b -> abs(b - a) }.average() else 0.0
 
-                runOnUiThread { status.text = "Measuring download..." }
+                runOnUiThread { status.text = tr("Measuring download") + "..." }
                 val startedDown = System.nanoTime()
                 val down = URL("https://speed.cloudflare.com/__down?bytes=10000000").openConnection() as HttpURLConnection
                 down.connectTimeout = 15000; down.readTimeout = 25000; down.useCaches = false
@@ -243,7 +243,7 @@ class MainActivity : Activity() {
                 val downSeconds = (System.nanoTime() - startedDown) / 1_000_000_000.0
                 val downMbps = if (downSeconds > 0) received * 8.0 / downSeconds / 1_000_000.0 else 0.0
 
-                runOnUiThread { status.text = "Measuring upload..." }
+                runOnUiThread { status.text = tr("Measuring upload") + "..." }
                 val payload = ByteArray(1_000_000)
                 val startedUp = System.nanoTime()
                 val up = URL("https://speed.cloudflare.com/__up").openConnection() as HttpURLConnection
@@ -267,7 +267,7 @@ class MainActivity : Activity() {
                     pingValue.text = ping.roundToInt().toString()
                     jitterValue.text = jitter.roundToInt().toString()
                     downloadValue.text = downText; uploadValue.text = upText
-                    status.text = "Test complete"
+                    status.text = tr("Test complete")
                     lastResult = result
                     prefs.edit().putString("last_result", result).apply()
                     refreshNetworkInfo()
@@ -281,10 +281,10 @@ class MainActivity : Activity() {
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    status.text = "Test failed. Check internet and try again."
+                    status.text = tr("Test failed. Check internet and try again.")
                     startButton.isEnabled = true; startButton.text = tr("TRY AGAIN")
                     shareButton.isEnabled = lastResult.isNotBlank()
-                    Toast.makeText(this, e.localizedMessage ?: "Connection error", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, e.localizedMessage ?: tr("Connection error"), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -292,19 +292,19 @@ class MainActivity : Activity() {
 
     private fun showAppMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
-        menu.menu.add(0, 1, 0, "🕘  History")
+        menu.menu.add(0, 1, 0, "🕘  ${tr("History")}")
         menu.menu.add(0, 5, 1, "📊  ${tr("Traffic")}")
-        menu.menu.add(0, 2, 2, "ℹ️  About app")
+        menu.menu.add(0, 2, 2, "ℹ️  ${tr("About app")}")
         menu.menu.add(0, 3, 3, "✨  No Ads")
-        menu.menu.add(0, 4, 4, "🌐  Language")
+        menu.menu.add(0, 4, 4, "🌐  ${tr("Language")}")
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> showHistoryDialog()
                 5 -> startActivity(Intent(this, TrafficActivity::class.java))
                 2 -> AlertDialog.Builder(this)
-                    .setTitle("Internet Speed Test")
-                    .setMessage("Test download, upload, ping and jitter. View connection details and recent test history.\n\nVersion 1.0")
-                    .setPositiveButton("OK", null)
+                    .setTitle(tr("About app"))
+                    .setMessage(tr("about_message"))
+                    .setPositiveButton(tr("OK"), null)
                     .show()
                 3 -> showNoAdsDialog()
                 4 -> showLanguageDialog()
@@ -328,21 +328,213 @@ class MainActivity : Activity() {
             "tr" to mapOf("INTERNET SPEED TEST" to "İNTERNET HIZ TESTİ", "MEASURE YOUR CONNECTION" to "BAĞLANTI HIZINI ÖLÇ", "Ready to test" to "Teste hazır", "DOWNLOAD" to "İNDİRME", "UPLOAD" to "YÜKLEME", "START TEST" to "TESTİ BAŞLAT", "TEST AGAIN" to "TEKRAR TEST ET", "SHARE RESULTS" to "SONUÇLARI PAYLAŞ", "RECENT TESTS" to "SON TESTLER"),
             "uk" to mapOf("INTERNET SPEED TEST" to "ТЕСТ ШВИДКОСТІ ІНТЕРНЕТУ", "MEASURE YOUR CONNECTION" to "ВИМІРЮЙТЕ З’ЄДНАННЯ", "Ready to test" to "Готово до тесту", "DOWNLOAD" to "ЗАВАНТАЖЕННЯ", "UPLOAD" to "ВІДДАВАННЯ", "START TEST" to "ПОЧАТИ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТИ ТЕСТ", "SHARE RESULTS" to "ПОДІЛИТИСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ОСТАННІ ТЕСТИ")
         )
-        return dict[lang]?.get(text) ?: text
+
+        val extra = mapOf(
+            "ru" to mapOf(
+                "History" to "История", "About app" to "О приложении", "Language" to "Язык", "OK" to "ОК",
+                "about_message" to "Проверяйте скорость загрузки и отдачи, пинг и джиттер. Просматривайте сведения о соединении и последние результаты.\n\nВерсия 1.0",
+                "Enjoy a cleaner experience" to "Пользуйтесь приложением без лишнего",
+                "Choose an ad-free plan" to "Выберите вариант без рекламы", "1 MONTH" to "1 МЕСЯЦ",
+                "1 YEAR" to "1 ГОД", "Ad-free for one month" to "Без рекламы в течение месяца",
+                "Best value • Ad-free for one year" to "Выгодно • Без рекламы в течение года",
+                "Google Play purchase" to "Покупка в Google Play",
+                "purchase_message" to "План «{plan}» пока является только макетом. Для приёма платежей необходимо настроить Google Play Billing и соответствующий продукт. Сейчас в приложении нет рекламы, покупка не совершена.",
+                "Full Test History" to "Полная история тестов", "Your completed tests will appear here." to "Здесь будут отображаться завершённые тесты.",
+                "Clear history" to "Очистить историю", "History cleared" to "История очищена",
+                "Network details permission" to "Разрешение на сведения о сети",
+                "permission_message" to "Разрешите необязательные разрешения, чтобы показывать имя Wi-Fi и сведения о мобильном операторе и сети. Проверка скорости работает и без них.",
+                "Continue" to "Продолжить", "Not now" to "Не сейчас", "Checking latency" to "Проверка задержки",
+                "Measuring download" to "Измерение скорости загрузки", "Measuring upload" to "Измерение скорости отдачи",
+                "Test complete" to "Проверка завершена", "Test failed. Check internet and try again." to "Не удалось выполнить тест. Проверьте интернет и попробуйте снова.",
+                "Connection error" to "Ошибка соединения", "Share speed test results" to "Поделиться результатами теста",
+                "Offline / no active connection" to "Нет активного соединения", "Mobile data" to "Мобильный интернет",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Подключённая сеть",
+                "Metered connection: Yes" to "Лимитное соединение: да", "Metered connection: No" to "Лимитное соединение: нет",
+                "Wi-Fi name: " to "Имя Wi-Fi: ", "Operator: " to "Оператор: ", "Network type: " to "Тип сети: ",
+                "Network name/operator details unavailable or permission not granted." to "Имя сети или сведения об операторе недоступны либо нет разрешения.",
+                "Connection: " to "Соединение: ", "Offline" to "Нет соединения", "Wi-Fi (name unavailable)" to "Wi-Fi (имя недоступно)",
+                "Mobile data (network details unavailable)" to "Мобильная сеть (сведения недоступны)",
+                "Ping: " to "Пинг: ", "Jitter: " to "Джиттер: ", "Download: " to "Загрузка: ", "Upload: " to "Отдача: "
+            ),
+            "ka" to mapOf(
+                "History" to "ისტორია", "About app" to "აპლიკაციის შესახებ", "Language" to "ენა", "OK" to "კარგი",
+                "about_message" to "შეამოწმეთ ჩამოტვირთვისა და ატვირთვის სიჩქარე, პინგი და ჯიტერი. ნახეთ კავშირის დეტალები და ბოლო შედეგები.\n\nვერსია 1.0",
+                "Enjoy a cleaner experience" to "ისიამოვნეთ უფრო სუფთა გამოცდილებით", "Choose an ad-free plan" to "აირჩიეთ რეკლამის გარეშე გეგმა",
+                "1 MONTH" to "1 თვე", "1 YEAR" to "1 წელი", "Ad-free for one month" to "რეკლამის გარეშე ერთი თვის განმავლობაში",
+                "Best value • Ad-free for one year" to "საუკეთესო არჩევანი • რეკლამის გარეშე ერთი წელი",
+                "Google Play purchase" to "Google Play-ის შეძენა",
+                "purchase_message" to "გეგმა „{plan}“ ამჟამად მხოლოდ დიზაინის ნიმუშია. გადახდების მისაღებად საჭიროა Google Play Billing-ისა და შესაბამისი პროდუქტის კონფიგურაცია. აპლიკაციაში ამჟამად რეკლამები არ არის და შეძენა არ განხორციელებულა.",
+                "Full Test History" to "ტესტების სრული ისტორია", "Your completed tests will appear here." to "აქ გამოჩნდება დასრულებული ტესტები.",
+                "Clear history" to "ისტორიის გასუფთავება", "History cleared" to "ისტორია გასუფთავდა",
+                "Network details permission" to "ქსელის დეტალების ნებართვა",
+                "permission_message" to "დაუშვით არასავალდებულო ნებართვები Wi-Fi-ის სახელისა და მობილური ოპერატორის/ქსელის დეტალების საჩვენებლად. სიჩქარის ტესტი მათ გარეშეც მუშაობს.",
+                "Continue" to "გაგრძელება", "Not now" to "ახლა არა", "Checking latency" to "დაყოვნების შემოწმება",
+                "Measuring download" to "ჩამოტვირთვის სიჩქარის გაზომვა", "Measuring upload" to "ატვირთვის სიჩქარის გაზომვა",
+                "Test complete" to "ტესტი დასრულდა", "Test failed. Check internet and try again." to "ტესტი ვერ შესრულდა. შეამოწმეთ ინტერნეტი და სცადეთ თავიდან.",
+                "Connection error" to "კავშირის შეცდომა", "Share speed test results" to "ტესტის შედეგების გაზიარება",
+                "Offline / no active connection" to "აქტიური კავშირი არ არის", "Mobile data" to "მობილური ინტერნეტი",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "დაკავშირებული ქსელი",
+                "Metered connection: Yes" to "ლიმიტირებული კავშირი: დიახ", "Metered connection: No" to "ლიმიტირებული კავშირი: არა",
+                "Wi-Fi name: " to "Wi-Fi-ის სახელი: ", "Operator: " to "ოპერატორი: ", "Network type: " to "ქსელის ტიპი: ",
+                "Network name/operator details unavailable or permission not granted." to "ქსელის სახელი ან ოპერატორის დეტალები მიუწვდომელია ან ნებართვა არ არის გაცემული.",
+                "Connection: " to "კავშირი: ", "Offline" to "კავშირი არ არის", "Wi-Fi (name unavailable)" to "Wi-Fi (სახელი მიუწვდომელია)",
+                "Mobile data (network details unavailable)" to "მობილური ქსელი (დეტალები მიუწვდომელია)",
+                "Ping: " to "პინგი: ", "Jitter: " to "ჯიტერი: ", "Download: " to "ჩამოტვირთვა: ", "Upload: " to "ატვირთვა: "
+            ),
+            "de" to mapOf(
+                "History" to "Verlauf", "About app" to "Über die App", "Language" to "Sprache", "OK" to "OK",
+                "about_message" to "Messen Sie Download, Upload, Ping und Jitter. Sehen Sie Verbindungsdetails und letzte Testergebnisse.\n\nVersion 1.0",
+                "Enjoy a cleaner experience" to "Genießen Sie eine aufgeräumte Nutzung", "Choose an ad-free plan" to "Wählen Sie einen werbefreien Tarif",
+                "1 MONTH" to "1 MONAT", "1 YEAR" to "1 JAHR", "Ad-free for one month" to "Einen Monat werbefrei",
+                "Best value • Ad-free for one year" to "Bestes Angebot • Ein Jahr werbefrei", "Google Play purchase" to "Google-Play-Kauf",
+                "purchase_message" to "Der Tarif „{plan}“ ist derzeit nur eine Designvorschau. Für Zahlungen müssen Google Play Billing und das passende Produkt eingerichtet werden. Diese App enthält derzeit keine Werbung; es wurde nichts gekauft.",
+                "Full Test History" to "Vollständiger Testverlauf", "Your completed tests will appear here." to "Hier erscheinen abgeschlossene Tests.",
+                "Clear history" to "Verlauf löschen", "History cleared" to "Verlauf gelöscht", "Network details permission" to "Berechtigung für Netzwerkdetails",
+                "permission_message" to "Erlauben Sie optionale Berechtigungen, um WLAN-Name und Mobilfunkanbieter/Netzwerkdetails anzuzeigen. Der Geschwindigkeitstest funktioniert auch ohne diese Berechtigungen.",
+                "Continue" to "Weiter", "Not now" to "Jetzt nicht", "Checking latency" to "Latenz wird geprüft",
+                "Measuring download" to "Downloadgeschwindigkeit wird gemessen", "Measuring upload" to "Uploadgeschwindigkeit wird gemessen",
+                "Test complete" to "Test abgeschlossen", "Test failed. Check internet and try again." to "Test fehlgeschlagen. Prüfen Sie die Internetverbindung und versuchen Sie es erneut.",
+                "Connection error" to "Verbindungsfehler", "Share speed test results" to "Testergebnisse teilen",
+                "Offline / no active connection" to "Offline / keine aktive Verbindung", "Mobile data" to "Mobile Daten",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Verbundenes Netzwerk",
+                "Metered connection: Yes" to "Getaktete Verbindung: Ja", "Metered connection: No" to "Getaktete Verbindung: Nein",
+                "Wi-Fi name: " to "WLAN-Name: ", "Operator: " to "Anbieter: ", "Network type: " to "Netzwerktyp: ",
+                "Network name/operator details unavailable or permission not granted." to "Netzwerkname oder Anbieterdetails nicht verfügbar oder Berechtigung fehlt.",
+                "Connection: " to "Verbindung: ", "Offline" to "Offline", "Wi-Fi (name unavailable)" to "WLAN (Name nicht verfügbar)",
+                "Mobile data (network details unavailable)" to "Mobile Daten (Netzwerkdetails nicht verfügbar)",
+                "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Download: ", "Upload: " to "Upload: "
+            ),
+            "es" to mapOf(
+                "History" to "Historial", "About app" to "Acerca de la app", "Language" to "Idioma", "OK" to "Aceptar",
+                "about_message" to "Mide la descarga, la subida, el ping y el jitter. Consulta los detalles de conexión y los resultados recientes.\n\nVersión 1.0",
+                "Enjoy a cleaner experience" to "Disfruta de una experiencia más limpia", "Choose an ad-free plan" to "Elige un plan sin anuncios",
+                "1 MONTH" to "1 MES", "1 YEAR" to "1 AÑO", "Ad-free for one month" to "Sin anuncios durante un mes",
+                "Best value • Ad-free for one year" to "Mejor opción • Sin anuncios durante un año", "Google Play purchase" to "Compra de Google Play",
+                "purchase_message" to "El plan «{plan}» es solo una vista previa. Para aceptar pagos, hay que configurar Google Play Billing y el producto correspondiente. Esta app no tiene anuncios actualmente y no se ha realizado ninguna compra.",
+                "Full Test History" to "Historial completo de pruebas", "Your completed tests will appear here." to "Aquí aparecerán las pruebas completadas.",
+                "Clear history" to "Borrar historial", "History cleared" to "Historial borrado", "Network details permission" to "Permiso para detalles de red",
+                "permission_message" to "Permite permisos opcionales para mostrar el nombre de Wi-Fi y los detalles del operador/red móvil. La prueba de velocidad funciona aunque los rechaces.",
+                "Continue" to "Continuar", "Not now" to "Ahora no", "Checking latency" to "Comprobando latencia",
+                "Measuring download" to "Midiendo la descarga", "Measuring upload" to "Midiendo la subida",
+                "Test complete" to "Prueba completada", "Test failed. Check internet and try again." to "La prueba ha fallado. Comprueba internet e inténtalo de nuevo.",
+                "Connection error" to "Error de conexión", "Share speed test results" to "Compartir resultados",
+                "Offline / no active connection" to "Sin conexión activa", "Mobile data" to "Datos móviles",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Red conectada",
+                "Metered connection: Yes" to "Conexión de uso medido: Sí", "Metered connection: No" to "Conexión de uso medido: No",
+                "Wi-Fi name: " to "Nombre de Wi-Fi: ", "Operator: " to "Operador: ", "Network type: " to "Tipo de red: ",
+                "Network name/operator details unavailable or permission not granted." to "Nombre de red o datos del operador no disponibles o permiso no concedido.",
+                "Connection: " to "Conexión: ", "Offline" to "Sin conexión", "Wi-Fi (name unavailable)" to "Wi-Fi (nombre no disponible)",
+                "Mobile data (network details unavailable)" to "Datos móviles (detalles no disponibles)",
+                "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Descarga: ", "Upload: " to "Subida: "
+            ),
+            "fr" to mapOf(
+                "History" to "Historique", "About app" to "À propos", "Language" to "Langue", "OK" to "OK",
+                "about_message" to "Mesurez le téléchargement, l’envoi, le ping et la gigue. Consultez les détails de connexion et les résultats récents.\n\nVersion 1.0",
+                "Enjoy a cleaner experience" to "Profitez d’une expérience plus épurée", "Choose an ad-free plan" to "Choisissez une formule sans publicité",
+                "1 MONTH" to "1 MOIS", "1 YEAR" to "1 AN", "Ad-free for one month" to "Sans publicité pendant un mois",
+                "Best value • Ad-free for one year" to "Meilleure offre • Sans publicité pendant un an", "Google Play purchase" to "Achat Google Play",
+                "purchase_message" to "La formule « {plan} » est une maquette uniquement. Google Play Billing et le produit correspondant doivent être configurés pour accepter les paiements. Cette application n’affiche actuellement aucune publicité et aucun achat n’a été effectué.",
+                "Full Test History" to "Historique complet des tests", "Your completed tests will appear here." to "Vos tests terminés apparaîtront ici.",
+                "Clear history" to "Effacer l’historique", "History cleared" to "Historique effacé", "Network details permission" to "Autorisation des détails réseau",
+                "permission_message" to "Autorisez les permissions facultatives pour afficher le nom du Wi-Fi et les détails de l’opérateur/réseau mobile. Le test fonctionne même sans ces autorisations.",
+                "Continue" to "Continuer", "Not now" to "Pas maintenant", "Checking latency" to "Vérification de la latence",
+                "Measuring download" to "Mesure du téléchargement", "Measuring upload" to "Mesure de l’envoi",
+                "Test complete" to "Test terminé", "Test failed. Check internet and try again." to "Échec du test. Vérifiez Internet et réessayez.",
+                "Connection error" to "Erreur de connexion", "Share speed test results" to "Partager les résultats",
+                "Offline / no active connection" to "Hors ligne / aucune connexion active", "Mobile data" to "Données mobiles",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Réseau connecté",
+                "Metered connection: Yes" to "Connexion limitée : oui", "Metered connection: No" to "Connexion limitée : non",
+                "Wi-Fi name: " to "Nom du Wi-Fi : ", "Operator: " to "Opérateur : ", "Network type: " to "Type de réseau : ",
+                "Network name/operator details unavailable or permission not granted." to "Nom du réseau ou détails opérateur indisponibles, ou autorisation refusée.",
+                "Connection: " to "Connexion : ", "Offline" to "Hors ligne", "Wi-Fi (name unavailable)" to "Wi-Fi (nom indisponible)",
+                "Mobile data (network details unavailable)" to "Données mobiles (détails indisponibles)",
+                "Ping: " to "Ping : ", "Jitter: " to "Gigue : ", "Download: " to "Téléchargement : ", "Upload: " to "Envoi : "
+            ),
+            "it" to mapOf(
+                "History" to "Cronologia", "About app" to "Informazioni", "Language" to "Lingua", "OK" to "OK",
+                "about_message" to "Misura download, upload, ping e jitter. Consulta i dettagli della connessione e i risultati recenti.\n\nVersione 1.0",
+                "Enjoy a cleaner experience" to "Goditi un’esperienza più pulita", "Choose an ad-free plan" to "Scegli un piano senza pubblicità",
+                "1 MONTH" to "1 MESE", "1 YEAR" to "1 ANNO", "Ad-free for one month" to "Senza pubblicità per un mese",
+                "Best value • Ad-free for one year" to "Più conveniente • Senza pubblicità per un anno", "Google Play purchase" to "Acquisto Google Play",
+                "purchase_message" to "Il piano «{plan}» è solo un’anteprima grafica. Per accettare pagamenti bisogna configurare Google Play Billing e il prodotto corrispondente. L’app al momento non contiene pubblicità e non è stato effettuato alcun acquisto.",
+                "Full Test History" to "Cronologia completa dei test", "Your completed tests will appear here." to "Qui appariranno i test completati.",
+                "Clear history" to "Cancella cronologia", "History cleared" to "Cronologia cancellata", "Network details permission" to "Autorizzazione dettagli rete",
+                "permission_message" to "Consenti le autorizzazioni facoltative per mostrare il nome Wi-Fi e i dettagli dell’operatore/rete mobile. Il test funziona anche senza.",
+                "Continue" to "Continua", "Not now" to "Non ora", "Checking latency" to "Controllo latenza",
+                "Measuring download" to "Misurazione download", "Measuring upload" to "Misurazione upload",
+                "Test complete" to "Test completato", "Test failed. Check internet and try again." to "Test non riuscito. Controlla Internet e riprova.",
+                "Connection error" to "Errore di connessione", "Share speed test results" to "Condividi i risultati",
+                "Offline / no active connection" to "Offline / nessuna connessione attiva", "Mobile data" to "Dati mobili",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Rete connessa",
+                "Metered connection: Yes" to "Connessione a consumo: sì", "Metered connection: No" to "Connessione a consumo: no",
+                "Wi-Fi name: " to "Nome Wi-Fi: ", "Operator: " to "Operatore: ", "Network type: " to "Tipo di rete: ",
+                "Network name/operator details unavailable or permission not granted." to "Nome rete o dettagli operatore non disponibili oppure autorizzazione non concessa.",
+                "Connection: " to "Connessione: ", "Offline" to "Offline", "Wi-Fi (name unavailable)" to "Wi-Fi (nome non disponibile)",
+                "Mobile data (network details unavailable)" to "Dati mobili (dettagli rete non disponibili)",
+                "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "Download: ", "Upload: " to "Upload: "
+            ),
+            "tr" to mapOf(
+                "History" to "Geçmiş", "About app" to "Uygulama hakkında", "Language" to "Dil", "OK" to "Tamam",
+                "about_message" to "İndirme, yükleme, ping ve jitter değerlerini ölçün. Bağlantı ayrıntılarını ve son test sonuçlarını görüntüleyin.\n\nSürüm 1.0",
+                "Enjoy a cleaner experience" to "Daha sade bir deneyimin keyfini çıkarın", "Choose an ad-free plan" to "Reklamsız bir plan seçin",
+                "1 MONTH" to "1 AY", "1 YEAR" to "1 YIL", "Ad-free for one month" to "Bir ay boyunca reklamsız",
+                "Best value • Ad-free for one year" to "En avantajlı • Bir yıl reklamsız", "Google Play purchase" to "Google Play satın alımı",
+                "purchase_message" to "“{plan}” planı şimdilik yalnızca tasarım önizlemesidir. Ödeme almak için Google Play Billing ve ilgili ürün yapılandırılmalıdır. Uygulamada şu anda reklam yoktur ve satın alma yapılmamıştır.",
+                "Full Test History" to "Tüm test geçmişi", "Your completed tests will appear here." to "Tamamlanan testler burada görünür.",
+                "Clear history" to "Geçmişi temizle", "History cleared" to "Geçmiş temizlendi", "Network details permission" to "Ağ ayrıntıları izni",
+                "permission_message" to "Wi-Fi adını ve mobil operatör/ağ ayrıntılarını göstermek için isteğe bağlı izinleri verin. Hız testi bu izinler olmadan da çalışır.",
+                "Continue" to "Devam", "Not now" to "Şimdi değil", "Checking latency" to "Gecikme ölçülüyor",
+                "Measuring download" to "İndirme hızı ölçülüyor", "Measuring upload" to "Yükleme hızı ölçülüyor",
+                "Test complete" to "Test tamamlandı", "Test failed. Check internet and try again." to "Test başarısız. İnterneti kontrol edip tekrar deneyin.",
+                "Connection error" to "Bağlantı hatası", "Share speed test results" to "Test sonuçlarını paylaş",
+                "Offline / no active connection" to "Çevrimdışı / etkin bağlantı yok", "Mobile data" to "Mobil veri",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Bağlı ağ",
+                "Metered connection: Yes" to "Kotalı bağlantı: Evet", "Metered connection: No" to "Kotalı bağlantı: Hayır",
+                "Wi-Fi name: " to "Wi-Fi adı: ", "Operator: " to "Operatör: ", "Network type: " to "Ağ türü: ",
+                "Network name/operator details unavailable or permission not granted." to "Ağ adı veya operatör bilgileri kullanılamıyor ya da izin verilmedi.",
+                "Connection: " to "Bağlantı: ", "Offline" to "Çevrimdışı", "Wi-Fi (name unavailable)" to "Wi-Fi (ad kullanılamıyor)",
+                "Mobile data (network details unavailable)" to "Mobil veri (ağ ayrıntıları yok)",
+                "Ping: " to "Ping: ", "Jitter: " to "Jitter: ", "Download: " to "İndirme: ", "Upload: " to "Yükleme: "
+            ),
+            "uk" to mapOf(
+                "History" to "Історія", "About app" to "Про застосунок", "Language" to "Мова", "OK" to "Гаразд",
+                "about_message" to "Вимірюйте швидкість завантаження й передавання, пінг і джиттер. Переглядайте відомості про з’єднання та останні результати.\n\nВерсія 1.0",
+                "Enjoy a cleaner experience" to "Користуйтеся застосунком без зайвого", "Choose an ad-free plan" to "Оберіть тариф без реклами",
+                "1 MONTH" to "1 МІСЯЦЬ", "1 YEAR" to "1 РІК", "Ad-free for one month" to "Без реклами протягом місяця",
+                "Best value • Ad-free for one year" to "Вигідно • Без реклами протягом року", "Google Play purchase" to "Покупка Google Play",
+                "purchase_message" to "Тариф «{plan}» наразі є лише макетом. Для приймання платежів потрібно налаштувати Google Play Billing і відповідний продукт. Зараз у застосунку немає реклами, покупку не здійснено.",
+                "Full Test History" to "Повна історія тестів", "Your completed tests will appear here." to "Тут відображатимуться завершені тести.",
+                "Clear history" to "Очистити історію", "History cleared" to "Історію очищено", "Network details permission" to "Дозвіл на відомості про мережу",
+                "permission_message" to "Дозвольте необов’язкові дозволи, щоб показувати назву Wi-Fi та відомості про мобільного оператора/мережу. Тест швидкості працює і без них.",
+                "Continue" to "Продовжити", "Not now" to "Не зараз", "Checking latency" to "Перевірка затримки",
+                "Measuring download" to "Вимірювання завантаження", "Measuring upload" to "Вимірювання передавання",
+                "Test complete" to "Тест завершено", "Test failed. Check internet and try again." to "Не вдалося виконати тест. Перевірте інтернет і спробуйте ще раз.",
+                "Connection error" to "Помилка з’єднання", "Share speed test results" to "Поділитися результатами",
+                "Offline / no active connection" to "Немає активного з’єднання", "Mobile data" to "Мобільні дані",
+                "Ethernet" to "Ethernet", "VPN" to "VPN", "Connected network" to "Підключена мережа",
+                "Metered connection: Yes" to "Тарифне з’єднання: так", "Metered connection: No" to "Тарифне з’єднання: ні",
+                "Wi-Fi name: " to "Назва Wi-Fi: ", "Operator: " to "Оператор: ", "Network type: " to "Тип мережі: ",
+                "Network name/operator details unavailable or permission not granted." to "Назва мережі або відомості оператора недоступні чи дозвіл не надано.",
+                "Connection: " to "З’єднання: ", "Offline" to "Офлайн", "Wi-Fi (name unavailable)" to "Wi-Fi (назва недоступна)",
+                "Mobile data (network details unavailable)" to "Мобільні дані (відомості недоступні)",
+                "Ping: " to "Пінг: ", "Jitter: " to "Джиттер: ", "Download: " to "Завантаження: ", "Upload: " to "Передавання: "
+            )
+        )
+        return dict[lang]?.get(text) ?: extra[lang]?.get(text) ?: text
     }
 
     private fun showLanguageDialog() {
         val names = arrayOf("English", "Русский", "ქართული", "Deutsch", "Español", "Français", "Italiano", "Türkçe", "Українська")
         val codes = arrayOf("en", "ru", "ka", "de", "es", "fr", "it", "tr", "uk")
         val current = prefs.getString("language", "en") ?: "en"
-        AlertDialog.Builder(this).setTitle("Language")
+        AlertDialog.Builder(this).setTitle(tr("Language"))
             .setSingleChoiceItems(names, codes.indexOf(current).coerceAtLeast(0)) { dialog, which ->
                 prefs.edit().putString("language", codes[which]).apply()
                 dialog.dismiss()
                 buildScreen()
                 refreshNetworkInfo()
                 refreshHistory()
-            }.setNegativeButton("Close", null).show()
+            }.setNegativeButton(tr("Close"), null).show()
     }
 
     private fun showNoAdsDialog() {
@@ -352,11 +544,11 @@ class MainActivity : Activity() {
             setBackgroundColor(bg)
         }
         content.addView(TextView(this).apply {
-            text = "Enjoy a cleaner experience"; textSize = 20f
+            text = tr("Enjoy a cleaner experience"); textSize = 20f
             typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.WHITE); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, -2))
         content.addView(TextView(this).apply {
-            text = "Choose an ad-free plan"; textSize = 13f
+            text = tr("Choose an ad-free plan"); textSize = 13f
             setTextColor(Color.rgb(165, 190, 215)); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5); bottomMargin = dp(14) })
 
@@ -383,28 +575,28 @@ class MainActivity : Activity() {
             })
             content.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
             card.setOnClickListener {
-                AlertDialog.Builder(this@MainActivity).setTitle("Google Play purchase")
-                    .setMessage("The $title plan is a design preview only. Google Play Billing and the matching product must be configured before payments can be accepted. This app currently contains no ads, so no purchase has been made.")
-                    .setPositiveButton("OK", null).show()
+                AlertDialog.Builder(this@MainActivity).setTitle(tr("Google Play purchase"))
+                    .setMessage(tr("purchase_message").replace("{plan}", title))
+                    .setPositiveButton(tr("OK"), null).show()
             }
         }
-        planCard("1 MONTH", "€0.99", "Ad-free for one month", false)
-        planCard("1 YEAR", "€1.99", "Best value • Ad-free for one year", true)
+        planCard(tr("1 MONTH"), "€0.99", tr("Ad-free for one month"), false)
+        planCard(tr("1 YEAR"), "€1.99", tr("Best value • Ad-free for one year"), true)
         AlertDialog.Builder(this).setTitle("✨  No Ads").setView(content)
-            .setNegativeButton("Close", null).show()
+            .setNegativeButton(tr("Close"), null).show()
     }
 
     private fun showHistoryDialog() {
         val history = prefs.getString("history", "") ?: ""
         AlertDialog.Builder(this)
-            .setTitle("Full Test History")
-            .setMessage(if (history.isBlank()) "Your completed tests will appear here." else history.replace("\n", "\n\n"))
-            .setNeutralButton("Clear history") { _, _ ->
+            .setTitle(tr("Full Test History"))
+            .setMessage(if (history.isBlank()) tr("Your completed tests will appear here.") else history.replace("\n", "\n\n"))
+            .setNeutralButton(tr("Clear history")) { _, _ ->
                 prefs.edit().remove("history").apply()
                 refreshHistory()
-                Toast.makeText(this, "History cleared", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, tr("History cleared"), Toast.LENGTH_SHORT).show()
             }
-            .setPositiveButton("Close", null)
+            .setPositiveButton(tr("Close"), null)
             .show()
     }
 
@@ -420,12 +612,12 @@ class MainActivity : Activity() {
         }
         if (needed.isEmpty()) return
         AlertDialog.Builder(this)
-            .setTitle("Network details permission")
-            .setMessage("Allow optional permissions to show your Wi-Fi network name and mobile operator/network details. Internet speed testing works even if you decline.")
-            .setPositiveButton("Continue") { _, _ ->
+            .setTitle(tr("Network details permission"))
+            .setMessage(tr("permission_message"))
+            .setPositiveButton(tr("Continue")) { _, _ ->
                 requestPermissions(needed.toTypedArray(), networkPermissionRequest)
             }
-            .setNegativeButton("Not now") { _, _ -> refreshNetworkInfo() }
+            .setNegativeButton(tr("Not now")) { _, _ -> refreshNetworkInfo() }
             .show()
     }
 
