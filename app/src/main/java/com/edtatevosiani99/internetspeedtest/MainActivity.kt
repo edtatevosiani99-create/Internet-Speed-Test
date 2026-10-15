@@ -96,7 +96,8 @@ class MainActivity : Activity() {
         }
         header.addView(menuButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(8) })
         header.addView(TextView(this).apply {
-            text = tr("INTERNET SPEED TEST"); textSize = 20f; setTextColor(Color.WHITE)
+            text = tr("INTERNET SPEED TEST"); textSize = 17f; setTextColor(Color.WHITE)
+            maxLines = 1; isSingleLine = true; includeFontPadding = false
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(0, -2, 1f))
         headerNetwork = TextView(this).apply {
