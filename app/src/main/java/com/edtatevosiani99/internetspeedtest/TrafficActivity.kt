@@ -251,7 +251,9 @@ class TrafficActivity : Activity() {
 
     private fun renderPermissionNeeded() {
         if (!::content.isInitialized) return
-        content.removeAllViews()
+        // Always render the traffic table first, even before Usage access is granted.
+        // This ensures the table is visible immediately; permission help follows it.
+        renderRows()
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = panelBackground()
@@ -282,11 +284,8 @@ class TrafficActivity : Activity() {
             }
         }
         card.addView(allow, matchWrap().apply { topMargin = dp(16) })
-        content.addView(card, matchWrap().apply { topMargin = dp(10) })
-        content.addView(label(
-            tr("After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history."),
-            12f, Color.rgb(125, 145, 170)
-        ), matchWrap().apply { topMargin = dp(14) })
+        // Place the permission card directly after the table, not above it.
+        content.addView(card, 1, matchWrap().apply { topMargin = dp(10) })
     }
 
     private fun renderRows() {
