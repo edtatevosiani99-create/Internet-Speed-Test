@@ -60,7 +60,6 @@ class MainActivity : Activity() {
         buildScreen()
         refreshNetworkInfo()
         refreshHistory()
-        requestNetworkDetailsPermissionIfNeeded()
     }
 
     private fun buildScreen() {
@@ -609,32 +608,6 @@ class MainActivity : Activity() {
             }
             .setPositiveButton(tr("Close"), null)
             .show()
-    }
-
-    private val networkPermissionRequest = 7104
-
-    private fun requestNetworkDetailsPermissionIfNeeded() {
-        val needed = mutableListOf<String>()
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            needed.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            needed.add(Manifest.permission.READ_PHONE_STATE)
-        }
-        if (needed.isEmpty()) return
-        AlertDialog.Builder(this)
-            .setTitle(tr("Network details permission"))
-            .setMessage(tr("permission_message"))
-            .setPositiveButton(tr("Continue")) { _, _ ->
-                requestPermissions(needed.toTypedArray(), networkPermissionRequest)
-            }
-            .setNegativeButton(tr("Not now")) { _, _ -> refreshNetworkInfo() }
-            .show()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == networkPermissionRequest) refreshNetworkInfo()
     }
 
     private fun refreshNetworkInfo() {
