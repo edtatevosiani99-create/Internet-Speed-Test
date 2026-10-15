@@ -29,7 +29,6 @@ class MainActivity : Activity() {
     private lateinit var downloadValue: TextView
     private lateinit var uploadValue: TextView
     private lateinit var jitterValue: TextView
-    private lateinit var lossValue: TextView
     private lateinit var networkInfo: TextView
     private lateinit var historyText: TextView
     private lateinit var startButton: Button
@@ -82,11 +81,8 @@ class MainActivity : Activity() {
         pingValue = metric(row1, "PING", "—", "ms")
         downloadValue = metric(row1, "DOWNLOAD", "—", "Mbps")
         uploadValue = metric(row1, "UPLOAD", "—", "Mbps")
+        jitterValue = metric(row1, "JITTER", "—", "ms")
         root.addView(row1, LinearLayout.LayoutParams(-1, dp(104)).apply { topMargin = dp(10) })
-        val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        jitterValue = metric(row2, "JITTER", "—", "ms")
-        lossValue = metric(row2, "PACKET LOSS", "—", "%")
-        root.addView(row2, LinearLayout.LayoutParams(-1, dp(98)).apply { topMargin = dp(8) })
 
         startButton = Button(this).apply {
             text = "START TEST"; textSize = 16f; typeface = Typeface.DEFAULT_BOLD; setTextColor(bg)
@@ -160,11 +156,10 @@ class MainActivity : Activity() {
         shareButton.isEnabled = false
         status.text = "Checking latency (1/5)..."
         pingValue.text = "…"; downloadValue.text = "…"; uploadValue.text = "…"
-        jitterValue.text = "…"; lossValue.text = "…"
+        jitterValue.text = "…"
         thread {
             try {
                 val samples = mutableListOf<Double>()
-                var failed = 0
                 for (i in 1..5) {
                     try {
                         val started = System.nanoTime()
@@ -174,14 +169,13 @@ class MainActivity : Activity() {
                         c.inputStream.use { input -> while (input.read() != -1) { } }
                         c.disconnect()
                         samples.add((System.nanoTime() - started) / 1_000_000.0)
-                    } catch (_: Exception) { failed++ }
+                    } catch (_: Exception) { /* Ignore failed latency sample. */ }
                     val n = i
                     runOnUiThread { status.text = "Checking latency ($n/5)..." }
                 }
                 if (samples.isEmpty()) throw IllegalStateException("Could not reach the test server")
                 val ping = samples.average()
                 val jitter = if (samples.size > 1) samples.zipWithNext { a, b -> abs(b - a) }.average() else 0.0
-                val loss = failed * 100.0 / 5.0
 
                 runOnUiThread { status.text = "Measuring download..." }
                 val startedDown = System.nanoTime()
@@ -215,13 +209,12 @@ class MainActivity : Activity() {
                 val upMbps = if (upSeconds > 0) payload.size * 8.0 / upSeconds / 1_000_000.0 else 0.0
                 val downText = String.format(java.util.Locale.US, "%.1f", downMbps)
                 val upText = if (response in 200..299) String.format(java.util.Locale.US, "%.1f", upMbps) else "N/A"
-                val result = "Internet Speed Test\nPing: ${ping.roundToInt()} ms\nJitter: ${jitter.roundToInt()} ms\nPacket loss: ${String.format(java.util.Locale.US, "%.0f", loss)}%\nDownload: ${downText} Mbps\nUpload: ${upText} Mbps"
+                val result = "Internet Speed Test\nPing: ${ping.roundToInt()} ms\nJitter: ${jitter.roundToInt()} ms\nDownload: ${downText} Mbps\nUpload: ${upText} Mbps"
                 val date = java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
                 val historyLine = "${date}  •  ↓${downText}  ↑${upText}  •  ${ping.roundToInt()} ms ping"
                 runOnUiThread {
                     pingValue.text = ping.roundToInt().toString()
                     jitterValue.text = jitter.roundToInt().toString()
-                    lossValue.text = String.format(java.util.Locale.US, "%.0f", loss)
                     downloadValue.text = downText; uploadValue.text = upText
                     status.text = "Test complete"
                     lastResult = result
