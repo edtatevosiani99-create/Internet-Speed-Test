@@ -297,8 +297,8 @@ class TrafficActivity : Activity() {
         val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val monthKey = todayKey.substring(0, 7)
 
-        addDailyScale(todayKey)
-
+        // Put the monthly summary and daily table at the top so they are visible
+        // immediately on opening the traffic page, without scrolling past the chart.
         val table = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = panelBackground()
@@ -309,9 +309,6 @@ class TrafficActivity : Activity() {
         val todayWifi = historyPrefs.getLong(todayKey + "_wifi", -1L)
         val todayMobile = historyPrefs.getLong(todayKey + "_mobile", -1L)
         val todayTotal = if (todayWifi >= 0L && todayMobile >= 0L) todayWifi + todayMobile else -1L
-        table.addView(tableRow(tr("Today"), formatBytes(todayMobile), formatBytes(todayWifi), formatBytes(todayTotal), true))
-        table.addView(LinearLayout(this).apply { setBackgroundColor(Color.rgb(35, 55, 80)) }, LinearLayout.LayoutParams(-1, dp(1)))
-
         var monthWifi = 0L
         var monthMobile = 0L
         var monthWifiKnown = false
@@ -325,8 +322,11 @@ class TrafficActivity : Activity() {
         val monthWifiValue = if (monthWifiKnown) monthWifi else -1L
         val monthMobileValue = if (monthMobileKnown) monthMobile else -1L
         val monthTotal = if (monthWifiKnown && monthMobileKnown) monthWifi + monthMobile else -1L
+        // Monthly total first, followed by today's total and the scrollable date history.
         table.addView(tableRow(tr("This month"), formatBytes(monthMobileValue), formatBytes(monthWifiValue), formatBytes(monthTotal), true))
         table.addView(LinearLayout(this).apply { setBackgroundColor(cyan) }, LinearLayout.LayoutParams(-1, dp(1)))
+        table.addView(tableRow(tr("Today"), formatBytes(todayMobile), formatBytes(todayWifi), formatBytes(todayTotal), true))
+        table.addView(LinearLayout(this).apply { setBackgroundColor(Color.rgb(35, 55, 80)) }, LinearLayout.LayoutParams(-1, dp(1)))
 
         allDates.filter { it != todayKey }.take(89).forEachIndexed { index, date ->
             val wifi = historyPrefs.getLong(date + "_wifi", -1L)
@@ -343,6 +343,8 @@ class TrafficActivity : Activity() {
             }
         }
         content.addView(table, matchWrap())
+        // Keep the visual daily chart, but below the requested table and monthly summary.
+        addDailyScale(todayKey)
         content.addView(label(
             tr("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button."),
             11f, Color.rgb(125, 145, 170)
