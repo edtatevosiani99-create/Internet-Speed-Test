@@ -177,7 +177,7 @@ class MainActivity : Activity() {
             setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12))
             background = panelBackground()
-            setOnClickListener { openUsageAccessSettings() }
+            setOnClickListener { if (hasUsageAccess()) showTrafficHistoryDialog() else openUsageAccessSettings() }
         }
         content.addView(trafficUsageText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
         refreshTrafficUsage()
@@ -328,9 +328,9 @@ class MainActivity : Activity() {
     private fun tr(text: String): String {
         val lang = prefs.getString("language", "en") ?: "en"
         val dict = mapOf(
-            "ru" to mapOf("DATA USAGE" to "РАСХОД ТРАФИКА", "TODAY" to "СЕГОДНЯ", "THIS MONTH" to "ЗА МЕСЯЦ", "Wi-Fi" to "Wi-Fi", "Mobile data" to "Мобильный интернет", "Tap to refresh traffic statistics" to "Нажмите, чтобы обновить статистику", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Учитывайте весь трафик телефона отдельно для Wi-Fi и мобильной сети. Нажмите, чтобы разрешить доступ к статистике.", "Loading traffic statistics…" to "Загрузка статистики трафика…", "Unavailable" to "Недоступно", "Traffic statistics refreshed" to "Статистика трафика обновлена", "Open Android Settings and allow Usage access" to "Откройте настройки Android и разрешите доступ к статистике", "INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
-            "ka" to mapOf("DATA USAGE" to "ტრაფიკის გამოყენება", "TODAY" to "დღეს", "THIS MONTH" to "ამ თვეში", "Wi-Fi" to "Wi-Fi", "Mobile data" to "მობილური ინტერნეტი", "Tap to refresh traffic statistics" to "შეეხეთ სტატისტიკის განახლებას", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "ტელეფონის მთელი ტრაფიკის აღრიცხვა Wi-Fi-სა და მობილურ ინტერნეტზე ცალ-ცალკე. შეეხეთ სტატისტიკაზე წვდომის დასაშვებად.", "Loading traffic statistics…" to "ტრაფიკის სტატისტიკის ჩატვირთვა…", "Unavailable" to "მიუწვდომელია", "Traffic statistics refreshed" to "ტრაფიკის სტატისტიკა განახლდა", "Open Android Settings and allow Usage access" to "გახსენით Android-ის პარამეტრები და დაუშვით სტატისტიკაზე წვდომა", "INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
-            "de" to mapOf("DATA USAGE" to "DATENVERBRAUCH", "TODAY" to "HEUTE", "THIS MONTH" to "DIESEN MONAT", "Wi-Fi" to "WLAN", "Mobile data" to "Mobile Daten", "Tap to refresh traffic statistics" to "Tippen, um die Statistik zu aktualisieren", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Gesamten Datenverbrauch getrennt für WLAN und mobile Daten erfassen. Tippen, um den Zugriff zu erlauben.", "Loading traffic statistics…" to "Datenstatistik wird geladen…", "Unavailable" to "Nicht verfügbar", "Traffic statistics refreshed" to "Datenstatistik aktualisiert", "Open Android Settings and allow Usage access" to "Öffne die Android-Einstellungen und erlaube den Nutzungszugriff", "INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
+            "ru" to mapOf("DATA USAGE" to "РАСХОД ТРАФИКА", "TODAY" to "СЕГОДНЯ", "THIS MONTH" to "ЗА МЕСЯЦ", "Wi-Fi" to "Wi-Fi", "Mobile data" to "Мобильный интернет", "Tap to refresh traffic statistics" to "Нажмите, чтобы обновить статистику", "Tap to view traffic history" to "Нажмите, чтобы открыть историю трафика", "Traffic history" to "История трафика", "DAILY HISTORY" to "ИСТОРИЯ ПО ДНЯМ", "MONTHLY HISTORY" to "ИСТОРИЯ ПО МЕСЯЦАМ", "History starts after Usage access is enabled." to "История начнётся после разрешения доступа к статистике.", "History is saved on this phone and cannot be deleted from the app." to "История сохраняется на телефоне, удалить её из приложения нельзя.", "Refresh" to "Обновить", "Close" to "Закрыть", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Учитывайте весь трафик телефона отдельно для Wi-Fi и мобильной сети. Нажмите, чтобы разрешить доступ к статистике.", "Loading traffic statistics…" to "Загрузка статистики трафика…", "Unavailable" to "Недоступно", "Traffic statistics refreshed" to "Статистика трафика обновлена", "Open Android Settings and allow Usage access" to "Откройте настройки Android и разрешите доступ к статистике", "INTERNET SPEED TEST" to "ТЕСТ СКОРОСТИ ИНТЕРНЕТА", "MEASURE YOUR CONNECTION" to "ИЗМЕРЬТЕ СВОЁ СОЕДИНЕНИЕ", "Ready to test" to "Готово к проверке", "PING" to "ПИНГ", "DOWNLOAD" to "ЗАГРУЗКА", "UPLOAD" to "ОТДАЧА", "JITTER" to "ДЖИТТЕР", "START TEST" to "НАЧАТЬ ТЕСТ", "TEST AGAIN" to "ПОВТОРИТЬ ТЕСТ", "TRY AGAIN" to "ПОВТОРИТЬ", "TESTING..." to "ТЕСТИРОВАНИЕ...", "SHARE RESULTS" to "ПОДЕЛИТЬСЯ РЕЗУЛЬТАТАМИ", "RECENT TESTS" to "ПОСЛЕДНИЕ ТЕСТЫ", "No ads • No account required" to "Без рекламы • Без аккаунта"),
+            "ka" to mapOf("DATA USAGE" to "ტრაფიკის გამოყენება", "TODAY" to "დღეს", "THIS MONTH" to "ამ თვეში", "Wi-Fi" to "Wi-Fi", "Mobile data" to "მობილური ინტერნეტი", "Tap to refresh traffic statistics" to "შეეხეთ სტატისტიკის განახლებას", "Tap to view traffic history" to "შეეხეთ ტრაფიკის ისტორიის სანახავად", "Traffic history" to "ტრაფიკის ისტორია", "DAILY HISTORY" to "დღიური ისტორია", "MONTHLY HISTORY" to "თვიური ისტორია", "History starts after Usage access is enabled." to "ისტორია დაიწყება სტატისტიკაზე წვდომის ჩართვის შემდეგ.", "History is saved on this phone and cannot be deleted from the app." to "ისტორია ტელეფონში ინახება და აპიდან ვერ წაიშლება.", "Refresh" to "განახლება", "Close" to "დახურვა", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "ტელეფონის მთელი ტრაფიკის აღრიცხვა Wi-Fi-სა და მობილურ ინტერნეტზე ცალ-ცალკე. შეეხეთ სტატისტიკაზე წვდომის დასაშვებად.", "Loading traffic statistics…" to "ტრაფიკის სტატისტიკის ჩატვირთვა…", "Unavailable" to "მიუწვდომელია", "Traffic statistics refreshed" to "ტრაფიკის სტატისტიკა განახლდა", "Open Android Settings and allow Usage access" to "გახსენით Android-ის პარამეტრები და დაუშვით სტატისტიკაზე წვდომა", "INTERNET SPEED TEST" to "ინტერნეტის სიჩქარის ტესტი", "MEASURE YOUR CONNECTION" to "შეამოწმეთ კავშირი", "Ready to test" to "ტესტისთვის მზადაა", "PING" to "პინგი", "DOWNLOAD" to "ჩამოტვირთვა", "UPLOAD" to "ატვირთვა", "JITTER" to "ჯიტერი", "START TEST" to "ტესტის დაწყება", "TEST AGAIN" to "ხელახლა ტესტი", "TRY AGAIN" to "ხელახლა სცადეთ", "TESTING..." to "მოწმდება...", "SHARE RESULTS" to "შედეგების გაზიარება", "RECENT TESTS" to "ბოლო ტესტები", "No ads • No account required" to "რეკლამის გარეშე • ანგარიშის გარეშე"),
+            "de" to mapOf("DATA USAGE" to "DATENVERBRAUCH", "TODAY" to "HEUTE", "THIS MONTH" to "DIESEN MONAT", "Wi-Fi" to "WLAN", "Mobile data" to "Mobile Daten", "Tap to refresh traffic statistics" to "Tippen, um die Statistik zu aktualisieren", "Tap to view traffic history" to "Tippen, um den Datenverlauf zu öffnen", "Traffic history" to "Datenverlauf", "DAILY HISTORY" to "TAGESVERLAUF", "MONTHLY HISTORY" to "MONATSVERLAUF", "History starts after Usage access is enabled." to "Der Verlauf beginnt, sobald der Statistikzugriff erlaubt ist.", "History is saved on this phone and cannot be deleted from the app." to "Der Verlauf wird auf diesem Telefon gespeichert und kann nicht in der App gelöscht werden.", "Refresh" to "Aktualisieren", "Close" to "Schließen", "Track all phone traffic separately for Wi-Fi and mobile data. Tap here to allow Usage access." to "Gesamten Datenverbrauch getrennt für WLAN und mobile Daten erfassen. Tippen, um den Zugriff zu erlauben.", "Loading traffic statistics…" to "Datenstatistik wird geladen…", "Unavailable" to "Nicht verfügbar", "Traffic statistics refreshed" to "Datenstatistik aktualisiert", "Open Android Settings and allow Usage access" to "Öffne die Android-Einstellungen und erlaube den Nutzungszugriff", "INTERNET SPEED TEST" to "INTERNET-GESCHWINDIGKEIT", "MEASURE YOUR CONNECTION" to "VERBINDUNG MESSEN", "Ready to test" to "Bereit zum Testen", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "TEST STARTEN", "TEST AGAIN" to "ERNEUT TESTEN", "TRY AGAIN" to "NOCHMALS VERSUCHEN", "TESTING..." to "TEST LÄUFT...", "SHARE RESULTS" to "ERGEBNISSE TEILEN", "RECENT TESTS" to "LETZTE TESTS", "No ads • No account required" to "Keine Werbung • Kein Konto nötig"),
             "es" to mapOf("INTERNET SPEED TEST" to "VELOCIDAD DE INTERNET", "MEASURE YOUR CONNECTION" to "MIDE TU CONEXIÓN", "Ready to test" to "Listo para probar", "DOWNLOAD" to "DESCARGA", "UPLOAD" to "SUBIDA", "START TEST" to "INICIAR PRUEBA", "TEST AGAIN" to "REPETIR PRUEBA", "SHARE RESULTS" to "COMPARTIR RESULTADOS", "RECENT TESTS" to "PRUEBAS RECIENTES"),
             "fr" to mapOf("INTERNET SPEED TEST" to "TEST DE VITESSE INTERNET", "MEASURE YOUR CONNECTION" to "MESUREZ VOTRE CONNEXION", "Ready to test" to "Prêt à tester", "DOWNLOAD" to "TÉLÉCHARGEMENT", "UPLOAD" to "ENVOI", "START TEST" to "LANCER LE TEST", "TEST AGAIN" to "REFAIRE LE TEST", "SHARE RESULTS" to "PARTAGER LES RÉSULTATS", "RECENT TESTS" to "TESTS RÉCENTS"),
             "it" to mapOf("INTERNET SPEED TEST" to "TEST VELOCITÀ INTERNET", "MEASURE YOUR CONNECTION" to "MISURA LA CONNESSIONE", "Ready to test" to "Pronto per il test", "DOWNLOAD" to "DOWNLOAD", "UPLOAD" to "UPLOAD", "START TEST" to "AVVIA TEST", "TEST AGAIN" to "RIPETI TEST", "SHARE RESULTS" to "CONDIVIDI RISULTATI", "RECENT TESTS" to "TEST RECENTI"),
@@ -408,11 +408,6 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Full Test History")
             .setMessage(if (history.isBlank()) "Your completed tests will appear here." else history.replace("\n", "\n\n"))
-            .setNeutralButton("Clear history") { _, _ ->
-                prefs.edit().remove("history").apply()
-                refreshHistory()
-                Toast.makeText(this, "History cleared", Toast.LENGTH_SHORT).show()
-            }
             .setPositiveButton("Close", null)
             .show()
     }
@@ -549,27 +544,33 @@ class MainActivity : Activity() {
         trafficUsageText.text = tr("Loading traffic statistics…")
         thread {
             val now = System.currentTimeMillis()
-            val calendar = java.util.Calendar.getInstance().apply { timeInMillis = now }
-            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-            calendar.set(java.util.Calendar.MINUTE, 0)
-            calendar.set(java.util.Calendar.SECOND, 0)
-            calendar.set(java.util.Calendar.MILLISECOND, 0)
-            val dayStart = calendar.timeInMillis
-            calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
-            val monthStart = calendar.timeInMillis
+            val todayStart = startOfDay(now)
+            val monthCalendar = java.util.Calendar.getInstance().apply { timeInMillis = now; set(java.util.Calendar.DAY_OF_MONTH, 1) }
+            val monthStart = startOfDay(monthCalendar.timeInMillis)
+            val today = readTrafficForRange(todayStart, now)
+            val month = readTrafficForRange(monthStart, now)
 
-            fun totalBytes(type: Int, start: Long): Long {
-                val manager = getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
-                val bucket = manager.querySummaryForDevice(type, null, start, now)
-                return bucket.rxBytes + bucket.txBytes
+            // Store daily totals privately. Values are only increased, never erased or reduced by this app.
+            val dailyPrefs = getSharedPreferences("traffic_history_locked", MODE_PRIVATE)
+            val editor = dailyPrefs.edit()
+            val cursor = java.util.Calendar.getInstance().apply {
+                timeInMillis = todayStart
+                add(java.util.Calendar.DAY_OF_YEAR, -89)
             }
-            fun readUsage(start: Long): Pair<Long, Long> {
-                val wifi = try { totalBytes(ConnectivityManager.TYPE_WIFI, start) } catch (_: Exception) { -1L }
-                val mobile = try { totalBytes(ConnectivityManager.TYPE_MOBILE, start) } catch (_: Exception) { -1L }
-                return Pair(wifi, mobile)
+            while (cursor.timeInMillis <= todayStart) {
+                val dayStart = cursor.timeInMillis
+                val nextDay = java.util.Calendar.getInstance().apply {
+                    timeInMillis = dayStart
+                    add(java.util.Calendar.DAY_OF_YEAR, 1)
+                }.timeInMillis
+                val dateKey = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(dayStart))
+                val usage = if (dayStart == todayStart) today else readTrafficForRange(dayStart, nextDay)
+                saveMaxTraffic(editor, dailyPrefs, dateKey, "wifi", usage.first)
+                saveMaxTraffic(editor, dailyPrefs, dateKey, "mobile", usage.second)
+                cursor.add(java.util.Calendar.DAY_OF_YEAR, 1)
             }
-            val today = readUsage(dayStart)
-            val month = readUsage(monthStart)
+            editor.apply()
+
             runOnUiThread {
                 if (!::trafficUsageText.isInitialized) return@runOnUiThread
                 trafficUsageText.text = tr("TODAY") + "\n" +
@@ -578,9 +579,81 @@ class MainActivity : Activity() {
                     tr("THIS MONTH") + "\n" +
                     tr("Wi-Fi") + ": " + formatBytes(month.first) + "   •   " +
                     tr("Mobile data") + ": " + formatBytes(month.second) + "\n\n" +
-                    tr("Tap to refresh traffic statistics")
+                    tr("Tap to view traffic history")
             }
         }
+    }
+
+    private fun startOfDay(time: Long): Long {
+        val c = java.util.Calendar.getInstance().apply { timeInMillis = time }
+        c.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        c.set(java.util.Calendar.MINUTE, 0)
+        c.set(java.util.Calendar.SECOND, 0)
+        c.set(java.util.Calendar.MILLISECOND, 0)
+        return c.timeInMillis
+    }
+
+    private fun readTrafficForRange(start: Long, end: Long): Pair<Long, Long> {
+        fun totalBytes(type: Int): Long = try {
+            val manager = getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
+            val bucket = manager.querySummaryForDevice(type, null, start, end)
+            bucket.rxBytes + bucket.txBytes
+        } catch (_: Exception) { -1L }
+        return Pair(totalBytes(ConnectivityManager.TYPE_WIFI), totalBytes(ConnectivityManager.TYPE_MOBILE))
+    }
+
+    private fun saveMaxTraffic(
+        editor: android.content.SharedPreferences.Editor,
+        prefs: android.content.SharedPreferences,
+        date: String,
+        network: String,
+        value: Long
+    ) {
+        if (value < 0L) return
+        val key = "${date}_${network}"
+        if (value > prefs.getLong(key, -1L)) editor.putLong(key, value)
+    }
+
+    private fun showTrafficHistoryDialog() {
+        if (!hasUsageAccess()) {
+            openUsageAccessSettings()
+            return
+        }
+        val historyPrefs = getSharedPreferences("traffic_history_locked", MODE_PRIVATE)
+        val dates = historyPrefs.all.keys
+            .mapNotNull { key ->
+                key.substringBeforeLast("_").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+            }.distinct().sortedDescending()
+        val dailyLines = dates.take(30).map { date ->
+            val wifi = historyPrefs.getLong("${date}_wifi", -1L)
+            val mobile = historyPrefs.getLong("${date}_mobile", -1L)
+            "$date\n  Wi-Fi: ${formatBytes(wifi)}   •   ${tr("Mobile data")}: ${formatBytes(mobile)}"
+        }
+        val months = dates.map { it.substring(0, 7) }.distinct().sortedDescending().take(12)
+        val monthlyLines = months.map { month ->
+            var wifiTotal = 0L
+            var mobileTotal = 0L
+            dates.filter { it.startsWith(month) }.forEach { date ->
+                val wifi = historyPrefs.getLong("${date}_wifi", -1L)
+                val mobile = historyPrefs.getLong("${date}_mobile", -1L)
+                if (wifi >= 0L) wifiTotal += wifi
+                if (mobile >= 0L) mobileTotal += mobile
+            }
+            "$month\n  Wi-Fi: ${formatBytes(wifiTotal)}   •   ${tr("Mobile data")}: ${formatBytes(mobileTotal)}"
+        }
+        val message = buildString {
+            append(tr("DAILY HISTORY")); append("\n")
+            append(if (dailyLines.isEmpty()) tr("History starts after Usage access is enabled.") else dailyLines.joinToString("\n\n"))
+            append("\n\n"); append(tr("MONTHLY HISTORY")); append("\n")
+            append(if (monthlyLines.isEmpty()) tr("History starts after Usage access is enabled.") else monthlyLines.joinToString("\n\n"))
+            append("\n\n"); append(tr("History is saved on this phone and cannot be deleted from the app."))
+        }
+        AlertDialog.Builder(this)
+            .setTitle(tr("Traffic history"))
+            .setMessage(message)
+            .setPositiveButton(tr("Refresh")) { _, _ -> refreshTrafficUsage() }
+            .setNegativeButton(tr("Close"), null)
+            .show()
     }
 
     private fun formatBytes(bytes: Long): String {
