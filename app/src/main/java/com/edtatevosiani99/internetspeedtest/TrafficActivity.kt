@@ -35,14 +35,15 @@ class TrafficActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = bg
         window.navigationBarColor = bg
-        if (!hasUsageAccess()) {
-            Toast.makeText(this, "Allow Usage access to view traffic statistics", Toast.LENGTH_LONG).show()
-            try { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) } catch (_: Exception) { }
-            finish()
-            return
-        }
         buildPage()
-        loadAndRender()
+        if (hasUsageAccess()) loadAndRender() else renderPermissionNeeded()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::content.isInitialized) {
+            if (hasUsageAccess()) loadAndRender() else renderPermissionNeeded()
+        }
     }
 
     private fun buildPage() {
@@ -92,6 +93,10 @@ class TrafficActivity : Activity() {
 
     private fun loadAndRender() {
         if (!::content.isInitialized) return
+        if (!hasUsageAccess()) {
+            renderPermissionNeeded()
+            return
+        }
         content.removeAllViews()
         content.addView(label("Updating traffic history…", 14f, Color.LTGRAY), matchWrap().apply { bottomMargin = dp(12) })
         Thread {
@@ -111,6 +116,46 @@ class TrafficActivity : Activity() {
             editor.apply()
             runOnUiThread { renderRows() }
         }.start()
+    }
+
+    private fun renderPermissionNeeded() {
+        if (!::content.isInitialized) return
+        content.removeAllViews()
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = panelBackground()
+            setPadding(dp(16), dp(18), dp(16), dp(18))
+        }
+        card.addView(label("Traffic history", 19f, Color.WHITE, true), matchWrap())
+        card.addView(label(
+            "This page shows daily and monthly phone traffic, separated into mobile data and Wi-Fi. Android requires you to allow Usage access first. Your traffic page will stay here; it will not redirect you automatically.",
+            14f, Color.rgb(205, 220, 238)
+        ), matchWrap().apply { topMargin = dp(12) })
+        val allow = TextView(this).apply {
+            text = "ALLOW USAGE ACCESS"
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(bg)
+            gravity = Gravity.CENTER
+            setPadding(dp(12), dp(14), dp(12), dp(14))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = dp(12).toFloat()
+                setColor(cyan)
+            }
+            setOnClickListener {
+                try {
+                    startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                } catch (_: Exception) {
+                    Toast.makeText(this@TrafficActivity, "Open Android Settings and allow Usage access", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        card.addView(allow, matchWrap().apply { topMargin = dp(16) })
+        content.addView(card, matchWrap().apply { topMargin = dp(10) })
+        content.addView(label(
+            "After enabling access, return to this page. Statistics will load automatically. The app does not provide a button to erase traffic history.",
+            12f, Color.rgb(125, 145, 170)
+        ), matchWrap().apply { topMargin = dp(14) })
     }
 
     private fun renderRows() {
