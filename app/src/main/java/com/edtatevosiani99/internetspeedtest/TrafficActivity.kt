@@ -47,6 +47,22 @@ class TrafficActivity : Activity() {
     }
 
 
+
+    private fun selectedLocale(): Locale {
+        val code = getSharedPreferences("speed_test", MODE_PRIVATE).getString("language", "en") ?: "en"
+        return when (code) {
+            "ru" -> Locale("ru")
+            "ka" -> Locale("ka")
+            "de" -> Locale.GERMAN
+            "es" -> Locale("es")
+            "fr" -> Locale.FRENCH
+            "it" -> Locale.ITALIAN
+            "tr" -> Locale("tr")
+            "uk" -> Locale("uk")
+            else -> Locale.ENGLISH
+        }
+    }
+
     private fun tr(value: String): String {
         val lang = getSharedPreferences("speed_test", MODE_PRIVATE).getString("language", "en") ?: "en"
         val common = mapOf(
@@ -297,7 +313,7 @@ class TrafficActivity : Activity() {
                 if (m >= 0L) { mobile += m; mobileKnown = true }
             }
             val total = if (wifiKnown && mobileKnown) wifi + mobile else -1L
-            val monthName = try { SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(SimpleDateFormat("yyyy-MM", Locale.US).parse(month)!!) } catch (_: Exception) { month }
+            val monthName = try { SimpleDateFormat("MMMM yyyy", selectedLocale()).format(SimpleDateFormat("yyyy-MM", Locale.US).parse(month)!!) } catch (_: Exception) { month }
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL; background = panelBackground()
                 setPadding(dp(12), dp(10), dp(12), dp(10))
