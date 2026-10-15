@@ -361,11 +361,44 @@ class TrafficActivity : Activity() {
     }.timeInMillis
 
     private fun readTrafficForRange(start: Long, end: Long): Pair<Long, Long> {
-        fun totalBytes(type: Int): Long = try {
-            val manager = getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
-            val bucket = manager.querySummaryForDevice(type, null, start, end)
-            bucket.rxBytes + bucket.txBytes
-        } catch (_: Exception) { -1L }
+        val manager = getSystemService(Context.NETWORK_STATS_SERVICE) as NetworkStatsManager
+
+        fun totalBytes(type: Int): Long {
+            var deviceTotal = -1L
+            try {
+                val bucket = manager.querySummaryForDevice(type, null, start, end)
+                deviceTotal = (bucket.rxBytes + bucket.txBytes).coerceAtLeast(0L)
+            } catch (_: Exception) {
+                // Some Android builds do not return device summaries reliably.
+            }
+
+            // Fallback: sum the network's UID buckets when device summary is unavailable
+            // or reports zero despite available per-app network statistics.
+            var uidTotal = -1L
+            try {
+                val stats = manager.querySummary(type, null, start, end)
+                var sum = 0L
+                val bucket = NetworkStatsManager.Bucket()
+                while (stats.hasNextBucket()) {
+                    if (stats.getNextBucket(bucket)) {
+                        sum += bucket.rxBytes + bucket.txBytes
+                    }
+                }
+                stats.close()
+                uidTotal = sum.coerceAtLeast(0L)
+            } catch (_: Exception) {
+                // Keep whichever source Android allowed us to read.
+            }
+
+            return when {
+                deviceTotal > 0L && uidTotal > 0L -> maxOf(deviceTotal, uidTotal)
+                deviceTotal >= 0L && uidTotal > 0L -> uidTotal
+                deviceTotal >= 0L -> deviceTotal
+                uidTotal >= 0L -> uidTotal
+                else -> -1L
+            }
+        }
+
         return Pair(totalBytes(ConnectivityManager.TYPE_WIFI), totalBytes(ConnectivityManager.TYPE_MOBILE))
     }
 
