@@ -116,8 +116,8 @@ class AnimatedGlobeView(context: Context) : View(context) {
         // Small, restrained data sparks around the globe.
         for (i in 0..5) {
             val a = phase * 0.45f + i * (PI.toFloat() / 3f)
-            val x = cx + cos(a) * r * (1.25f + (i % 2) * 0.20f)
-            val y = cy + sin(a) * r * (0.90f + (i % 3) * 0.12f)
+            val x = cx + (cos(a) * r * (1.25f + (i % 2) * 0.20f)).toFloat()
+            val y = cy + (sin(a) * r * (0.90f + (i % 3) * 0.12f)).toFloat()
             dotPaint.color = if (i % 2 == 0) cyan else paleBlue
             canvas.drawCircle(x, y, dp(1.25f), dotPaint)
         }
