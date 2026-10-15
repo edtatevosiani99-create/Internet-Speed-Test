@@ -34,9 +34,11 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class MainActivity : Activity() {
-    private val bg = Color.rgb(8, 13, 27)
-    private val panel = Color.rgb(16, 25, 45)
+    private val bg = Color.rgb(5, 10, 23)
+    private val panel = Color.rgb(12, 23, 43)
     private val cyan = Color.rgb(42, 214, 255)
+    private val blue = Color.rgb(45, 111, 255)
+    private val muted = Color.rgb(151, 174, 203)
     private lateinit var status: TextView
     private lateinit var pingValue: TextView
     private lateinit var downloadValue: TextView
@@ -100,7 +102,7 @@ class MainActivity : Activity() {
         }
         header.addView(menuButton, LinearLayout.LayoutParams(dp(42), dp(42)).apply { rightMargin = dp(8) })
         header.addView(TextView(this).apply {
-            text = "INTERNET SPEED TEST"; textSize = 17f; setTextColor(Color.WHITE)
+            text = "INTERNET SPEED TEST"; textSize = 16f; setTextColor(Color.WHITE)
             maxLines = 1; isSingleLine = true; includeFontPadding = false
             typeface = Typeface.create("sans-serif-black", Typeface.BOLD); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(0, -2, 1f))
@@ -124,10 +126,14 @@ class MainActivity : Activity() {
         }, LinearLayout.LayoutParams(-1, dp(28)))
 
         content.addView(TextView(this).apply {
-            text = "↯"; textSize = 58f; setTextColor(cyan); gravity = Gravity.CENTER
-            background = android.graphics.drawable.GradientDrawable().apply {
+            text = "◉"; textSize = 58f; setTextColor(cyan); gravity = Gravity.CENTER
+            setShadowLayer(dp(16).toFloat(), 0f, 0f, cyan)
+            background = android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(18, 47, 83), Color.rgb(8, 17, 35))
+            ).apply {
                 shape = android.graphics.drawable.GradientDrawable.OVAL
-                setColor(panel); setStroke(dp(2), cyan)
+                setStroke(dp(2), cyan)
             }
         }, LinearLayout.LayoutParams(dp(126), dp(126)).apply {
             gravity = Gravity.CENTER; topMargin = dp(18); bottomMargin = dp(8)
@@ -140,20 +146,26 @@ class MainActivity : Activity() {
         val row1 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
         pingValue = metric(row1, tr("PING"), "—", "ms")
         downloadValue = metric(row1, tr("DOWNLOAD"), "—", "Mbps")
-        uploadValue = metric(row1, tr("UPLOAD"), "—", "Mbps")
-        jitterValue = metric(row1, tr("JITTER"), "—", "ms")
-        content.addView(row1, LinearLayout.LayoutParams(-1, dp(104)).apply { topMargin = dp(10) })
+        content.addView(row1, LinearLayout.LayoutParams(-1, dp(88)).apply { topMargin = dp(10) })
+        val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
+        uploadValue = metric(row2, tr("UPLOAD"), "—", "Mbps")
+        jitterValue = metric(row2, tr("JITTER"), "—", "ms")
+        content.addView(row2, LinearLayout.LayoutParams(-1, dp(88)).apply { topMargin = dp(8) })
 
         startButton = Button(this).apply {
-            text = tr("START TEST"); textSize = 16f; typeface = Typeface.DEFAULT_BOLD; setTextColor(bg)
+            text = tr("START TEST"); textSize = 15f; letterSpacing = 0.08f; typeface = Typeface.DEFAULT_BOLD; setTextColor(Color.rgb(4, 14, 29))
+            elevation = dp(5).toFloat()
             background = android.graphics.drawable.GradientDrawable().apply {
-                cornerRadius = dp(16).toFloat(); setColor(cyan)
+                cornerRadius = dp(16).toFloat()
+                colors = intArrayOf(cyan, blue)
+                orientation = android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT
             }
             setOnClickListener { runTest() }
         }
         content.addView(startButton, LinearLayout.LayoutParams(-1, dp(56)).apply { topMargin = dp(20) })
         shareButton = Button(this).apply {
-            text = tr("SHARE RESULTS"); textSize = 14f; setTextColor(cyan); background = outlineBackground()
+            text = tr("SHARE RESULTS"); textSize = 13f; letterSpacing = 0.04f; setTextColor(cyan); background = outlineBackground()
+            elevation = dp(2).toFloat()
             isEnabled = lastResult.isNotBlank(); alpha = if (isEnabled) 1f else 0.55f
             setOnClickListener {
                 if (lastResult.isNotBlank()) {
@@ -169,11 +181,13 @@ class MainActivity : Activity() {
         networkInfo = TextView(this).apply {
             textSize = 13f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
+            elevation = dp(3).toFloat()
         }
         addSectionTitle(content, "RECENT TESTS")
         historyText = TextView(this).apply {
             textSize = 12f; setTextColor(Color.rgb(205, 220, 238))
             setPadding(dp(14), dp(12), dp(14), dp(12)); background = panelBackground()
+            elevation = dp(3).toFloat()
         }
         content.addView(historyText, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
                 content.addView(TextView(this).apply {
@@ -189,7 +203,10 @@ class MainActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(dp(3), dp(7), dp(3), dp(7))
             background = android.graphics.drawable.GradientDrawable().apply {
-                cornerRadius = dp(13).toFloat(); setColor(panel); setStroke(dp(1), Color.rgb(35, 64, 91))
+                cornerRadius = dp(16).toFloat()
+        colors = intArrayOf(Color.rgb(16, 32, 56), Color.rgb(10, 20, 39))
+        orientation = android.graphics.drawable.GradientDrawable.Orientation.TL_BR
+        setStroke(dp(1), Color.rgb(36, 77, 117))
             }
         }
         card.addView(TextView(this).apply { text = label; textSize = 9f; setTextColor(Color.LTGRAY); gravity = Gravity.CENTER })
@@ -846,7 +863,7 @@ class MainActivity : Activity() {
 
     private fun addSectionTitle(parent: LinearLayout, title: String) {
         parent.addView(TextView(this).apply {
-            text = title; textSize = 12f; typeface = Typeface.DEFAULT_BOLD; letterSpacing = 0.12f; setTextColor(cyan)
+            text = "▰  " + title; textSize = 12f; typeface = Typeface.DEFAULT_BOLD; letterSpacing = 0.14f; setTextColor(cyan)
         }, LinearLayout.LayoutParams(-1, dp(28)).apply { topMargin = dp(18) })
     }
 
@@ -854,7 +871,10 @@ class MainActivity : Activity() {
         cornerRadius = dp(13).toFloat(); setColor(panel); setStroke(dp(1), Color.rgb(35, 64, 91))
     }
     private fun outlineBackground() = android.graphics.drawable.GradientDrawable().apply {
-        cornerRadius = dp(14).toFloat(); setColor(panel); setStroke(dp(1), cyan)
+        cornerRadius = dp(14).toFloat()
+        colors = intArrayOf(Color.rgb(17, 35, 61), Color.rgb(10, 22, 42))
+        orientation = android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT
+        setStroke(dp(1), cyan)
     }
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
     private fun matchWrap() = LinearLayout.LayoutParams(-1, -2)
