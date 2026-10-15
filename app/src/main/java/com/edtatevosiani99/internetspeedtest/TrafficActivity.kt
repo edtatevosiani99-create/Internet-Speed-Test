@@ -109,8 +109,8 @@ class TrafficActivity : Activity() {
                 val nextDay = Calendar.getInstance().apply { timeInMillis = dayStart; add(Calendar.DAY_OF_YEAR, 1) }.timeInMillis
                 val key = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(dayStart))
                 val usage = if (dayStart == todayStart) readTrafficForRange(dayStart, now) else readTrafficForRange(dayStart, nextDay)
-                saveMax(editor, key + "_wifi", usage.first)
-                saveMax(editor, key + "_mobile", usage.second)
+                saveLatest(editor, key + "_wifi", usage.first)
+                saveLatest(editor, key + "_mobile", usage.second)
                 cursor.add(Calendar.DAY_OF_YEAR, 1)
             }
             editor.apply()
@@ -209,7 +209,7 @@ class TrafficActivity : Activity() {
             card.addView(label("Total: " + formatBytes(total), 13f, cyan, true), matchWrap().apply { topMargin = dp(4) })
             content.addView(card, matchWrap().apply { bottomMargin = dp(8) })
         }
-        content.addView(label("History is stored on this phone and the app does not provide a delete button.", 11f, Color.rgb(125, 145, 170)), matchWrap().apply { topMargin = dp(10) })
+        content.addView(label("History is stored on this phone. Recent daily totals refresh from Android system statistics; older saved days remain available. The app does not provide a delete button.", 11f, Color.rgb(125, 145, 170)), matchWrap().apply { topMargin = dp(10) })
     }
 
     private fun tableRow(date: String, mobile: String, wifi: String, total: String, highlighted: Boolean): LinearLayout {
@@ -254,8 +254,10 @@ class TrafficActivity : Activity() {
         return Pair(totalBytes(ConnectivityManager.TYPE_WIFI), totalBytes(ConnectivityManager.TYPE_MOBILE))
     }
 
-    private fun saveMax(editor: android.content.SharedPreferences.Editor, key: String, value: Long) {
-        if (value >= 0L && value > historyPrefs.getLong(key, -1L)) editor.putLong(key, value)
+    // Use the latest successful system reading so delayed Android corrections
+    // are reflected instead of permanently keeping a potentially inflated maximum.
+    private fun saveLatest(editor: android.content.SharedPreferences.Editor, key: String, value: Long) {
+        if (value >= 0L) editor.putLong(key, value)
     }
 
     private fun formatBytes(bytes: Long): String {
