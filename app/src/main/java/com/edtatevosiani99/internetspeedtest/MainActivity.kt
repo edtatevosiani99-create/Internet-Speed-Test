@@ -254,9 +254,9 @@ class MainActivity : Activity() {
 
     private fun showAppMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
-        menu.menu.add(0, 1, 0, "History")
-        menu.menu.add(0, 2, 1, "About app")
-        menu.menu.add(0, 3, 2, "No Ads")
+        menu.menu.add(0, 1, 0, "🕘  History")
+        menu.menu.add(0, 2, 1, "ℹ️  About app")
+        menu.menu.add(0, 3, 2, "✨  No Ads")
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> showHistoryDialog()
