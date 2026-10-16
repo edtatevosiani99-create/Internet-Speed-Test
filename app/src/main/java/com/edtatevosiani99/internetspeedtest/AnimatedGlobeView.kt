@@ -90,6 +90,88 @@ class AnimatedGlobeView(context: Context) : View(context) {
             canvas.drawOval(cx-rx, y-r*0.19f, cx+rx, y+r*0.19f, linePaint)
         }
 
+        // Recognizable stylized continents, drawn as luminous filled landmasses.
+        // Shapes are intentionally simplified for a crisp digital-globe look.
+        val landPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = 0xAA28BFE0.toInt()
+            setShadowLayer(dp(5f), 0f, 0f, cyan)
+        }
+        val coastPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = dp(1.25f)
+            color = 0xEE70F2FF.toInt()
+            setShadowLayer(dp(4f), 0f, 0f, cyan)
+        }
+        fun continent(points: List<Pair<Float, Float>>) {
+            val p = Path()
+            points.forEachIndexed { index, point ->
+                val px = cx + point.first * r
+                val py = cy + point.second * r
+                if (index == 0) p.moveTo(px, py) else p.lineTo(px, py)
+            }
+            p.close()
+            canvas.drawPath(p, landPaint)
+            canvas.drawPath(p, coastPaint)
+        }
+        // Europe and Asia
+        continent(listOf(-0.12f to -0.48f, 0.02f to -0.55f, 0.14f to -0.48f,
+            0.27f to -0.50f, 0.39f to -0.39f, 0.52f to -0.31f, 0.47f to -0.17f,
+            0.32f to -0.12f, 0.25f to -0.02f, 0.12f to -0.10f, 0.02f to -0.03f,
+            -0.10f to -0.14f, -0.22f to -0.19f, -0.18f to -0.34f))
+        // Africa
+        continent(listOf(-0.16f to -0.08f, -0.02f to -0.12f, 0.11f to -0.04f,
+            0.13f to 0.12f, 0.04f to 0.38f, -0.05f to 0.49f, -0.14f to 0.28f,
+            -0.21f to 0.08f))
+        // North America
+        continent(listOf(-0.76f to -0.43f, -0.61f to -0.56f, -0.43f to -0.50f,
+            -0.33f to -0.37f, -0.41f to -0.23f, -0.55f to -0.17f,
+            -0.62f to -0.02f, -0.72f to -0.13f, -0.80f to -0.30f))
+        // South America
+        continent(listOf(-0.48f to 0.02f, -0.34f to 0.09f, -0.31f to 0.23f,
+            -0.37f to 0.40f, -0.42f to 0.58f, -0.49f to 0.43f, -0.53f to 0.21f))
+        // Australia
+        continent(listOf(0.44f to 0.28f, 0.58f to 0.25f, 0.65f to 0.34f,
+            0.58f to 0.43f, 0.46f to 0.40f))
+        landPaint.clearShadowLayer()
+        coastPaint.clearShadowLayer()
+
+        // City lights and network routes over the continents.
+        val cities = listOf(
+            -0.61f to -0.31f, -0.49f to -0.23f, -0.43f to 0.17f,
+            -0.08f to -0.28f, 0.02f to -0.08f, 0.19f to -0.31f,
+            0.32f to -0.22f, 0.42f to -0.34f, 0.51f to 0.34f
+        )
+        val routePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = dp(0.85f)
+            color = 0xBB4FEAFF.toInt()
+            setShadowLayer(dp(3f), 0f, 0f, cyan)
+        }
+        for (i in 0 until cities.size - 1) {
+            val a = cities[i]
+            val b = cities[i + 1]
+            val path = Path().apply {
+                moveTo(cx + a.first * r, cy + a.second * r)
+                quadTo(cx + (a.first + b.first) * r * 0.58f,
+                    cy + (a.second + b.second) * r * 0.40f - r * 0.10f,
+                    cx + b.first * r, cy + b.second * r)
+            }
+            canvas.drawPath(path, routePaint)
+        }
+        routePaint.clearShadowLayer()
+        cities.forEachIndexed { index, point ->
+            val x = cx + point.first * r
+            val y = cy + point.second * r
+            val pulse = 1.4f + (1f + sin(phase * 2.2f + index)) * 1.1f
+            glowPaint.color = cyan
+            glowPaint.setShadowLayer(dp(6f), 0f, 0f, cyan)
+            canvas.drawCircle(x, y, dp(pulse + 1f), glowPaint)
+            glowPaint.clearShadowLayer()
+            dotPaint.color = Color.WHITE
+            canvas.drawCircle(x, y, dp(pulse * 0.55f), dotPaint)
+        }
+
         // Animated diagonal data trails on the globe surface.
         for (i in 0..5) {
             val yy = cy + ((i - 2.5f) * r * 0.24f)
