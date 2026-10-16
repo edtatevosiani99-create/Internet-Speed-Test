@@ -295,9 +295,10 @@ class AnimatedGlobeView(context: Context) : View(context) {
             dotPaint.clearShadowLayer()
         }
 
-        phase = (phase + if (testing) 0.075f else 0.025f) % (2f * PI.toFloat())
-        globeRotation = (globeRotation + if (testing) 1.05f else 0.35f) % 360f
-        postInvalidateDelayed(if (testing) 16L else 32L)
+        // Idle animation now runs at the previous test speed; during a test it gets a stronger boost.
+        phase = (phase + if (testing) 0.14f else 0.075f) % (2f * PI.toFloat())
+        globeRotation = (globeRotation + if (testing) 2.0f else 1.05f) % 360f
+        postInvalidateDelayed(if (testing) 16L else 16L)
     }
 
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
