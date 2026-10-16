@@ -68,6 +68,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
 
     private var phase = 0f
     private var globeRotation = 0f
+    private var lastFrameNanos = 0L
     @Volatile private var testing = false
 
     fun setTesting(active: Boolean) {
@@ -77,7 +78,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
 
     init {
         contentDescription = "Animated glowing 3D Earth globe"
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        // Keep the view hardware accelerated; software rendering caused severe frame drops.
     }
 
     private fun insideGeoPolygon(lon: Float, lat: Float, polygon: List<Geo>): Boolean {
@@ -158,8 +159,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
         // Unlike drawing a whole continent only when every corner is visible, this clips each
         // patch against the horizon independently, so land remains attached to the globe and
         // cannot blink out when a continent crosses the edge of the visible hemisphere.
-        landPaint.setShadowLayer(dp(3f), 0f, 0f, cyan)
-        coastPaint.setShadowLayer(dp(3f), 0f, 0f, cyan)
+        // Avoid per-frame shadow layers on thousands of land patches: they force expensive rendering.
         for (continent in continents) {
             val minLon = continent.minOf { it.lon }
             val maxLon = continent.maxOf { it.lon }
@@ -176,9 +176,9 @@ class AnimatedGlobeView(context: Context) : View(context) {
                             canvas.drawCircle(p.x, p.y, r * 0.027f, landPaint)
                         }
                     }
-                    lon += 2f
+                    lon += 4f
                 }
-                lat += 2f
+                lat += 4f
             }
 
             // Densify coast edges so the visible part of a coast never vanishes as its
@@ -186,7 +186,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
             for (i in continent.indices) {
                 val a = continent[i]
                 val b = continent[(i + 1) % continent.size]
-                val steps = (maxOf(abs(b.lon - a.lon), abs(b.lat - a.lat)) / 2f).toInt().coerceAtLeast(1)
+                val steps = (maxOf(abs(b.lon - a.lon), abs(b.lat - a.lat)) / 4f).toInt().coerceAtLeast(1)
                 var previous: ScreenPoint? = null
                 for (step in 0..steps) {
                     val t = step.toFloat() / steps
@@ -199,8 +199,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
                 }
             }
         }
-        landPaint.clearShadowLayer()
-        coastPaint.clearShadowLayer()
+
 
         // Network hubs are also geographic points, so they rotate with the surface.
         val cities = listOf(
@@ -230,9 +229,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
             if (p.depth > 0.04f) {
                 val pulse = 1.4f + (1f + sin(phase * 2.2f + index)) * 1.1f
                 glowPaint.color = cyan
-                glowPaint.setShadowLayer(dp(6f), 0f, 0f, cyan)
                 canvas.drawCircle(p.x, p.y, dp(pulse + 1f), glowPaint)
-                glowPaint.clearShadowLayer()
                 dotPaint.color = Color.WHITE
                 canvas.drawCircle(p.x, p.y, dp(pulse * 0.55f), dotPaint)
             }
@@ -275,9 +272,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
             val x = cx + ox * 0.91f - oy * 0.41f
             val y = cy + ox * 0.41f + oy * 0.91f
             glowPaint.color = cyan
-            glowPaint.setShadowLayer(dp(if (i == 0) 13f else 7f), 0f, 0f, cyan)
             canvas.drawCircle(x, y, dp(if (i == 0) 4.1f else 2.6f), glowPaint)
-            glowPaint.clearShadowLayer()
             dotPaint.color = if (i == 0) Color.WHITE else ice
             canvas.drawCircle(x, y, dp(if (i == 0) 2f else 1.3f), dotPaint)
         }
@@ -290,15 +285,19 @@ class AnimatedGlobeView(context: Context) : View(context) {
             val y = cy + sin(a) * orbitRy
             val pulse = 1.2f + (1f + sin(phase * 2.8f + i)) * 0.75f
             dotPaint.color = if (i % 3 == 0) Color.WHITE else if (i % 2 == 0) cyan else blue
-            dotPaint.setShadowLayer(dp(4f), 0f, 0f, cyan)
             canvas.drawCircle(x, y, dp(pulse), dotPaint)
-            dotPaint.clearShadowLayer()
         }
 
         // Idle animation now runs at the previous test speed; during a test it gets a stronger boost.
-        phase = (phase + if (testing) 0.14f else 0.075f) % (2f * PI.toFloat())
-        globeRotation = (globeRotation + if (testing) 2.0f else 1.05f) % 360f
-        postInvalidateDelayed(if (testing) 16L else 16L)
+        // Advance by elapsed frame time, not by frame count, so rotation stays smooth
+        // even when Android occasionally delivers a frame late.
+        val now = System.nanoTime()
+        val elapsed = if (lastFrameNanos == 0L) 1f / 60f
+            else ((now - lastFrameNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
+        lastFrameNanos = now
+        phase = (phase + (if (testing) 0.14f else 0.075f) * elapsed * 60f) % (2f * PI.toFloat())
+        globeRotation = (globeRotation + (if (testing) 2.0f else 1.05f) * elapsed * 60f) % 360f
+        postInvalidateOnAnimation()
     }
 
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
