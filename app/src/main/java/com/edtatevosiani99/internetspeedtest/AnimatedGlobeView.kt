@@ -113,7 +113,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
         if (r <= 0f) return
 
         glowPaint.shader = RadialGradient(cx, cy, r * 1.82f,
-            intArrayOf(0x6633DFFF, 0x33245DFF, 0x142F7DFF, Color.TRANSPARENT),
+            intArrayOf(0x6633DFFF, 0x2233DFFF, 0x1033DFFF, Color.TRANSPARENT),
             floatArrayOf(0f, 0.46f, 0.72f, 1f), Shader.TileMode.CLAMP)
         canvas.drawCircle(cx, cy, r * 1.82f, glowPaint)
         glowPaint.shader = null
