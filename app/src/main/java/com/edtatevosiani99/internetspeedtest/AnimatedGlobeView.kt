@@ -27,6 +27,13 @@ class AnimatedGlobeView(context: Context) : View(context) {
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val orbitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private var phase = 0f
+    @Volatile private var testing = false
+
+    /** Speed up the globe animation while a network test is running. */
+    fun setTesting(active: Boolean) {
+        testing = active
+        postInvalidateOnAnimation()
+    }
 
     init {
         contentDescription = "Animated glowing digital network globe"
@@ -70,6 +77,9 @@ class AnimatedGlobeView(context: Context) : View(context) {
         // Rotating longitude mesh and pulsing latitude bands.
         canvas.save()
         canvas.clipPath(Path().apply { addCircle(cx, cy, r * 0.99f, Path.Direction.CW) })
+        // Rotate the entire surface layer so coastlines, continents, grid and city lights
+        // stay attached to the sphere instead of floating independently.
+        canvas.rotate(phase * 22f, cx, cy)
         for (i in -4..4) {
             val longitude = i * 0.31f + phase
             val widthScale = abs(cos(longitude)).coerceAtLeast(0.055f)
@@ -246,8 +256,8 @@ class AnimatedGlobeView(context: Context) : View(context) {
         canvas.drawLine(cx-beamWidth, scanY, cx+beamWidth, scanY, linePaint)
         linePaint.clearShadowLayer()
 
-        phase = (phase + 0.025f) % (2f * PI.toFloat())
-        postInvalidateDelayed(32L)
+        phase = (phase + if (testing) 0.075f else 0.025f) % (2f * PI.toFloat())
+        postInvalidateDelayed(if (testing) 16L else 32L)
     }
 
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
