@@ -9,35 +9,27 @@ import android.graphics.RadialGradient
 import android.graphics.Shader
 import android.view.View
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.sqrt
 
-/**
- * Lightweight animated neon globe. It is drawn natively so it stays sharp on all
- * screen densities and needs no downloaded images or extra libraries.
- */
+/** Native animated neon globe with luminous network arcs and moving data particles. */
 class AnimatedGlobeView(context: Context) : View(context) {
-    private val cyan = Color.rgb(48, 220, 255)
-    private val paleBlue = Color.rgb(100, 164, 255)
-    private val globeFill = Color.rgb(8, 27, 54)
-    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(0.85f)
-        color = cyan
-    }
+    private val cyan = Color.rgb(55, 226, 255)
+    private val ice = Color.rgb(174, 247, 255)
+    private val blue = Color.rgb(57, 125, 255)
+    private val globeFill = Color.rgb(5, 22, 49)
+    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val orbitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(1f)
-        color = paleBlue
-    }
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val orbitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private var phase = 0f
 
     init {
-        contentDescription = "Animated glowing network globe"
+        contentDescription = "Animated glowing digital network globe"
         setLayerType(View.LAYER_TYPE_SOFTWARE, null)
     }
 
@@ -45,84 +37,134 @@ class AnimatedGlobeView(context: Context) : View(context) {
         super.onDraw(canvas)
         val cx = width / 2f
         val cy = height / 2f
-        val r = min(width * 0.31f, height * 0.39f)
+        val r = min(width * 0.265f, height * 0.335f)
         if (r <= 0f) return
 
-        // Soft halo behind the planet.
-        glowPaint.shader = RadialGradient(cx, cy, r * 1.65f,
-            intArrayOf(0x5531DFFF, 0x22316FFF, Color.TRANSPARENT),
-            floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP)
-        canvas.drawCircle(cx, cy, r * 1.65f, glowPaint)
+        // Wide atmospheric halo and a second, brighter aura.
+        glowPaint.shader = RadialGradient(cx, cy, r * 1.82f,
+            intArrayOf(0x6633DFFF, 0x33245DFF, 0x142F7DFF, Color.TRANSPARENT),
+            floatArrayOf(0f, 0.46f, 0.72f, 1f), Shader.TileMode.CLAMP)
+        canvas.drawCircle(cx, cy, r * 1.82f, glowPaint)
         glowPaint.shader = null
+        glowPaint.color = 0x5535DFFF
+        glowPaint.setShadowLayer(dp(18f), 0f, 0f, cyan)
+        canvas.drawCircle(cx, cy, r * 0.96f, glowPaint)
+        glowPaint.clearShadowLayer()
 
-        // Dark blue sphere with a luminous edge.
-        fillPaint.shader = RadialGradient(cx - r * 0.30f, cy - r * 0.34f, r * 1.5f,
-            intArrayOf(Color.rgb(24, 67, 112), globeFill, Color.rgb(3, 12, 29)),
-            floatArrayOf(0f, 0.58f, 1f), Shader.TileMode.CLAMP)
+        // Deep glossy sphere with a bright upper-left highlight.
+        fillPaint.shader = RadialGradient(cx - r * 0.36f, cy - r * 0.40f, r * 1.48f,
+            intArrayOf(Color.rgb(40, 104, 169), Color.rgb(9, 38, 77), globeFill, Color.rgb(1, 7, 20)),
+            floatArrayOf(0f, 0.34f, 0.70f, 1f), Shader.TileMode.CLAMP)
         canvas.drawCircle(cx, cy, r, fillPaint)
         fillPaint.shader = null
 
         linePaint.color = cyan
-        linePaint.strokeWidth = dp(1.15f)
-        linePaint.setShadowLayer(dp(5f), 0f, 0f, cyan)
+        linePaint.strokeWidth = dp(1.8f)
+        linePaint.setShadowLayer(dp(9f), 0f, 0f, cyan)
         canvas.drawCircle(cx, cy, r, linePaint)
         linePaint.clearShadowLayer()
+        linePaint.color = 0xAAE5FCFF.toInt()
+        linePaint.strokeWidth = dp(0.8f)
+        canvas.drawArc(cx-r*0.96f, cy-r*0.96f, cx+r*0.96f, cy+r*0.96f, 205f, 115f, false, linePaint)
 
-        // Longitudes rotate across the sphere, creating a clear sense of motion.
+        // Rotating longitude mesh and pulsing latitude bands.
         canvas.save()
-        canvas.clipPath(Path().apply { addCircle(cx, cy, r * 0.985f, Path.Direction.CW) })
-        for (i in -3..3) {
-            val longitude = i * 0.38f + phase
-            val horizontalScale = kotlin.math.abs(cos(longitude)).coerceAtLeast(0.10f)
-            linePaint.color = if (i == 0) 0xAA58E8FF.toInt() else 0x7746BDEB
-            linePaint.strokeWidth = if (i == 0) dp(1.05f) else dp(0.65f)
-            canvas.drawOval(cx - r * horizontalScale, cy - r, cx + r * horizontalScale, cy + r, linePaint)
+        canvas.clipPath(Path().apply { addCircle(cx, cy, r * 0.99f, Path.Direction.CW) })
+        for (i in -4..4) {
+            val longitude = i * 0.31f + phase
+            val widthScale = abs(cos(longitude)).coerceAtLeast(0.055f)
+            val alpha = if (i == 0) 220 else 95
+            linePaint.color = (alpha shl 24) or 0x0046DFFF
+            linePaint.strokeWidth = dp(if (i == 0) 1.6f else 0.9f)
+            linePaint.setShadowLayer(dp(if (i == 0) 5f else 2f), 0f, 0f, cyan)
+            canvas.drawOval(cx-r*widthScale, cy-r, cx+r*widthScale, cy+r, linePaint)
+            linePaint.clearShadowLayer()
         }
-        // Latitude arcs become flatter toward the poles.
-        for (i in -2..2) {
-            val latitude = i * 0.31f
-            val y = cy + sin(latitude) * r
-            val rx = r * kotlin.math.sqrt((1f - sin(latitude) * sin(latitude)).coerceAtLeast(0.05f))
-            linePaint.color = 0x7746D7FF
-            linePaint.strokeWidth = dp(0.65f)
-            canvas.drawOval(cx - rx, y - r * 0.16f, cx + rx, y + r * 0.16f, linePaint)
+        for (i in -3..3) {
+            val latitude = i * 0.255f
+            val sy = sin(latitude)
+            val y = cy + sy * r
+            val rx = r * sqrt((1f - sy * sy).coerceAtLeast(0.04f))
+            linePaint.color = if (i == 0) 0xAA53E9FF.toInt() else 0x6646CFFF
+            linePaint.strokeWidth = dp(if (i == 0) 1.25f else 0.75f)
+            canvas.drawOval(cx-rx, y-r*0.19f, cx+rx, y+r*0.19f, linePaint)
+        }
+
+        // Animated diagonal data trails on the globe surface.
+        for (i in 0..5) {
+            val yy = cy + ((i - 2.5f) * r * 0.24f)
+            val drift = ((phase * 24f + i * 31f) % 90f) - 45f
+            linePaint.color = 0x6644DFFF
+            linePaint.strokeWidth = dp(0.8f)
+            canvas.drawLine(cx-r*0.60f+drift, yy+r*0.13f, cx+r*0.60f+drift, yy-r*0.13f, linePaint)
         }
         canvas.restore()
 
-        // Orbit rings pass around and behind the globe.
+        // Three tilted orbital rings, each with a different rotation.
         canvas.save()
-        canvas.rotate(-22f, cx, cy)
-        orbitPaint.color = 0x9947DFFF.toInt()
-        orbitPaint.setShadowLayer(dp(4f), 0f, 0f, cyan)
-        canvas.drawOval(cx - r * 1.55f, cy - r * 0.43f, cx + r * 1.55f, cy + r * 0.43f, orbitPaint)
+        canvas.rotate(-24f, cx, cy)
+        orbitPaint.color = 0xCC4DE6FF.toInt()
+        orbitPaint.strokeWidth = dp(1.35f)
+        orbitPaint.setShadowLayer(dp(7f), 0f, 0f, cyan)
+        canvas.drawOval(cx-r*1.72f, cy-r*0.43f, cx+r*1.72f, cy+r*0.43f, orbitPaint)
         orbitPaint.clearShadowLayer()
         canvas.restore()
 
-        // Bright nodes travel around the orbit and twinkle at different positions.
-        for (i in 0..3) {
-            val a = phase * (1.0 + i * 0.14) + i * PI / 2.0
-            val orbitX = r * 1.52f * cos(a).toFloat()
-            val orbitY = r * 0.40f * sin(a).toFloat()
-            val x = cx + orbitX * 0.93f - orbitY * 0.37f
-            val y = cy + orbitX * 0.37f + orbitY * 0.93f
-            glowPaint.color = cyan
-            glowPaint.setShadowLayer(dp(7f), 0f, 0f, cyan)
-            canvas.drawCircle(x, y, dp(if (i == 0) 3.2f else 2.1f), glowPaint)
-            glowPaint.clearShadowLayer()
-            dotPaint.color = Color.WHITE
-            canvas.drawCircle(x, y, dp(if (i == 0) 1.5f else 1.0f), dotPaint)
-        }
+        canvas.save()
+        canvas.rotate(56f + sin(phase * 0.42f) * 8f, cx, cy)
+        orbitPaint.color = 0x885B9FFF.toInt()
+        orbitPaint.strokeWidth = dp(1.05f)
+        orbitPaint.setShadowLayer(dp(5f), 0f, 0f, blue)
+        canvas.drawOval(cx-r*1.48f, cy-r*0.29f, cx+r*1.48f, cy+r*0.29f, orbitPaint)
+        orbitPaint.clearShadowLayer()
+        canvas.restore()
 
-        // Small, restrained data sparks around the globe.
+        canvas.save()
+        canvas.rotate(phase * 18f, cx, cy)
+        orbitPaint.color = 0x775DEEFF
+        orbitPaint.strokeWidth = dp(0.8f)
+        canvas.drawOval(cx-r*1.62f, cy-r*0.58f, cx+r*1.62f, cy+r*0.58f, orbitPaint)
+        canvas.restore()
+
+        // Bright travelling satellites with layered bloom and white-hot cores.
         for (i in 0..5) {
-            val a = phase * 0.45f + i * (PI.toFloat() / 3f)
-            val x = cx + (cos(a) * r * (1.25f + (i % 2) * 0.20f)).toFloat()
-            val y = cy + (sin(a) * r * (0.90f + (i % 3) * 0.12f)).toFloat()
-            dotPaint.color = if (i % 2 == 0) cyan else paleBlue
-            canvas.drawCircle(x, y, dp(1.25f), dotPaint)
+            val a = phase * (0.72 + i * 0.095) + i * PI / 3.0
+            val ox = r * (1.52f + (i % 2) * 0.10f) * cos(a).toFloat()
+            val oy = r * (0.37f + (i % 3) * 0.025f) * sin(a).toFloat()
+            val x = cx + ox * 0.91f - oy * 0.41f
+            val y = cy + ox * 0.41f + oy * 0.91f
+            glowPaint.color = cyan
+            glowPaint.setShadowLayer(dp(if (i == 0) 13f else 7f), 0f, 0f, cyan)
+            canvas.drawCircle(x, y, dp(if (i == 0) 4.1f else 2.6f), glowPaint)
+            glowPaint.clearShadowLayer()
+            dotPaint.color = if (i == 0) Color.WHITE else ice
+            canvas.drawCircle(x, y, dp(if (i == 0) 2f else 1.3f), dotPaint)
         }
 
-        phase = (phase + 0.035f) % (2f * PI.toFloat())
+        // Orbiting sparks and pulsing network points.
+        for (i in 0..11) {
+            val a = phase * (if (i % 2 == 0) 0.55f else -0.34f) + i * (PI.toFloat() / 6f)
+            val orbitRx = r * (1.18f + (i % 3) * 0.19f)
+            val orbitRy = r * (0.82f + (i % 4) * 0.10f)
+            val x = cx + cos(a) * orbitRx
+            val y = cy + sin(a) * orbitRy
+            val pulse = 1.2f + (1f + sin(phase * 2.8f + i)) * 0.75f
+            dotPaint.color = if (i % 3 == 0) Color.WHITE else if (i % 2 == 0) cyan else blue
+            dotPaint.setShadowLayer(dp(4f), 0f, 0f, cyan)
+            canvas.drawCircle(x, y, dp(pulse), dotPaint)
+            dotPaint.clearShadowLayer()
+        }
+
+        // A soft scanning beam sweeps down the sphere.
+        val scanY = cy - r + ((phase * 22f) % (2f * r))
+        val beamWidth = r * sqrt((1f - ((scanY-cy)/r).let { it*it }).coerceAtLeast(0f))
+        linePaint.color = 0x554FEAFF
+        linePaint.strokeWidth = dp(2f)
+        linePaint.setShadowLayer(dp(8f), 0f, 0f, cyan)
+        canvas.drawLine(cx-beamWidth, scanY, cx+beamWidth, scanY, linePaint)
+        linePaint.clearShadowLayer()
+
+        phase = (phase + 0.025f) % (2f * PI.toFloat())
         postInvalidateDelayed(32L)
     }
 
