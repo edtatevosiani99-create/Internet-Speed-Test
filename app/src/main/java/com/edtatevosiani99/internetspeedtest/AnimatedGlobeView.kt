@@ -117,11 +117,6 @@ class AnimatedGlobeView(context: Context) : View(context) {
             floatArrayOf(0f, 0.46f, 0.72f, 1f), Shader.TileMode.CLAMP)
         canvas.drawCircle(cx, cy, r * 1.82f, glowPaint)
         glowPaint.shader = null
-        glowPaint.color = 0x5535DFFF
-        glowPaint.setShadowLayer(dp(18f), 0f, 0f, cyan)
-        canvas.drawCircle(cx, cy, r * 0.96f, glowPaint)
-        glowPaint.clearShadowLayer()
-
         fillPaint.shader = RadialGradient(cx - r * 0.36f, cy - r * 0.40f, r * 1.48f,
             intArrayOf(Color.rgb(40, 104, 169), Color.rgb(9, 38, 77), globeFill, Color.rgb(1, 7, 20)),
             floatArrayOf(0f, 0.34f, 0.70f, 1f), Shader.TileMode.CLAMP)
