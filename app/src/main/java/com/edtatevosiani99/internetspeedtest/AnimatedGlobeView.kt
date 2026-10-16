@@ -80,6 +80,20 @@ class AnimatedGlobeView(context: Context) : View(context) {
         setLayerType(View.LAYER_TYPE_SOFTWARE, null)
     }
 
+    private fun insideGeoPolygon(lon: Float, lat: Float, polygon: List<Geo>): Boolean {
+        var inside = false
+        var j = polygon.lastIndex
+        for (i in polygon.indices) {
+            val a = polygon[i]
+            val b = polygon[j]
+            val crosses = (a.lat > lat) != (b.lat > lat) &&
+                lon < (b.lon - a.lon) * (lat - a.lat) / ((b.lat - a.lat).takeIf { abs(it) > 0.0001f } ?: 0.0001f) + a.lon
+            if (crosses) inside = !inside
+            j = i
+        }
+        return inside
+    }
+
     private fun project(geo: Geo, cx: Float, cy: Float, r: Float): ScreenPoint {
         val lon = Math.toRadians((geo.lon + globeRotation).toDouble())
         val lat = Math.toRadians(geo.lat.toDouble())
@@ -140,25 +154,48 @@ class AnimatedGlobeView(context: Context) : View(context) {
             canvas.drawOval(cx - rx, cy - r, cx + rx, cy + r, linePaint)
         }
 
-        // Draw geographic outlines only on the visible hemisphere. This prevents back-side
-        // continents from bleeding through the sphere and keeps the map attached to the Earth.
-        landPaint.setShadowLayer(dp(4f), 0f, 0f, cyan)
+        // Rasterize each geographic land polygon into small overlapping surface patches.
+        // Unlike drawing a whole continent only when every corner is visible, this clips each
+        // patch against the horizon independently, so land remains attached to the globe and
+        // cannot blink out when a continent crosses the edge of the visible hemisphere.
+        landPaint.setShadowLayer(dp(3f), 0f, 0f, cyan)
         coastPaint.setShadowLayer(dp(3f), 0f, 0f, cyan)
         for (continent in continents) {
-            val projected = continent.map { project(it, cx, cy, r) }
-            if (projected.all { it.depth > 0.03f }) {
-                val path = Path()
-                projected.forEachIndexed { index, p ->
-                    if (index == 0) path.moveTo(p.x, p.y) else path.lineTo(p.x, p.y)
+            val minLon = continent.minOf { it.lon }
+            val maxLon = continent.maxOf { it.lon }
+            val minLat = continent.minOf { it.lat }
+            val maxLat = continent.maxOf { it.lat }
+            var lat = minLat
+            while (lat <= maxLat) {
+                var lon = minLon
+                while (lon <= maxLon) {
+                    if (insideGeoPolygon(lon, lat, continent)) {
+                        val p = project(Geo(lon, lat), cx, cy, r)
+                        if (p.depth > 0.015f) {
+                            // Overlapping small patches make a continuous filled land mass.
+                            canvas.drawCircle(p.x, p.y, r * 0.027f, landPaint)
+                        }
+                    }
+                    lon += 2f
                 }
-                path.close()
-                canvas.drawPath(path, landPaint)
+                lat += 2f
             }
-            for (i in projected.indices) {
-                val a = projected[i]
-                val b = projected[(i + 1) % projected.size]
-                if (a.depth > 0.015f && b.depth > 0.015f) {
-                    canvas.drawLine(a.x, a.y, b.x, b.y, coastPaint)
+
+            // Densify coast edges so the visible part of a coast never vanishes as its
+            // endpoints rotate behind the horizon.
+            for (i in continent.indices) {
+                val a = continent[i]
+                val b = continent[(i + 1) % continent.size]
+                val steps = (maxOf(abs(b.lon - a.lon), abs(b.lat - a.lat)) / 2f).toInt().coerceAtLeast(1)
+                var previous: ScreenPoint? = null
+                for (step in 0..steps) {
+                    val t = step.toFloat() / steps
+                    val p = project(Geo(a.lon + (b.lon - a.lon) * t, a.lat + (b.lat - a.lat) * t), cx, cy, r)
+                    val prev = previous
+                    if (prev != null && prev.depth > 0.015f && p.depth > 0.015f) {
+                        canvas.drawLine(prev.x, prev.y, p.x, p.y, coastPaint)
+                    }
+                    previous = p
                 }
             }
         }
