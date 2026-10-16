@@ -49,6 +49,7 @@ class MainActivity : Activity() {
     private lateinit var historyText: TextView
     private lateinit var trafficUsageText: TextView
     private lateinit var startButton: Button
+    private lateinit var globeView: AnimatedGlobeView
     private lateinit var shareButton: Button
     private var lastResult = ""
     private var currentNetworkLabel = "Unknown network"
@@ -125,7 +126,8 @@ class MainActivity : Activity() {
             setTextColor(cyan); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(28)))
 
-        content.addView(AnimatedGlobeView(this), LinearLayout.LayoutParams(dp(368), dp(308)).apply {
+        globeView = AnimatedGlobeView(this)
+        content.addView(globeView, LinearLayout.LayoutParams(dp(368), dp(308)).apply {
             gravity = Gravity.CENTER; topMargin = dp(7); bottomMargin = dp(0)
         })
         status = TextView(this).apply {
@@ -210,6 +212,7 @@ class MainActivity : Activity() {
     }
 
     private fun runTest() {
+        if (::globeView.isInitialized) globeView.setTesting(true)
         startButton.isEnabled = false; startButton.text = tr("TESTING...")
         shareButton.isEnabled = false
         status.text = tr("Checking latency") + " (1/5)..."
@@ -274,6 +277,7 @@ class MainActivity : Activity() {
                     jitterValue.text = jitter.roundToInt().toString()
                     downloadValue.text = downText; uploadValue.text = upText
                     status.text = tr("Test complete")
+                    if (::globeView.isInitialized) globeView.setTesting(false)
                     lastResult = result
                     prefs.edit().putString("last_result", result).apply()
                     refreshNetworkInfo()
@@ -288,6 +292,7 @@ class MainActivity : Activity() {
             } catch (e: Exception) {
                 runOnUiThread {
                     status.text = tr("Test failed. Check internet and try again.")
+                    if (::globeView.isInitialized) globeView.setTesting(false)
                     startButton.isEnabled = true; startButton.text = tr("TRY AGAIN")
                     shareButton.isEnabled = lastResult.isNotBlank()
                     Toast.makeText(this, e.localizedMessage ?: tr("Connection error"), Toast.LENGTH_LONG).show()
