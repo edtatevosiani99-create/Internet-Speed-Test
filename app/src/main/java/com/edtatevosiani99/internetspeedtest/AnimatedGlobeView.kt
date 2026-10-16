@@ -27,6 +27,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val orbitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private var phase = 0f
+    private var globeRotation = 0f
     @Volatile private var testing = false
 
     /** Speed up the globe animation while a network test is running. */
@@ -79,7 +80,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
         canvas.clipPath(Path().apply { addCircle(cx, cy, r * 0.99f, Path.Direction.CW) })
         // Rotate the entire surface layer so coastlines, continents, grid and city lights
         // stay attached to the sphere instead of floating independently.
-        canvas.rotate(phase * 22f, cx, cy)
+        canvas.rotate(globeRotation, cx, cy)
         for (i in -4..4) {
             val longitude = i * 0.31f + phase
             val widthScale = abs(cos(longitude)).coerceAtLeast(0.055f)
@@ -257,6 +258,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
         linePaint.clearShadowLayer()
 
         phase = (phase + if (testing) 0.075f else 0.025f) % (2f * PI.toFloat())
+        globeRotation = (globeRotation + if (testing) 1.05f else 0.35f) % 360f
         postInvalidateDelayed(if (testing) 16L else 32L)
     }
 
