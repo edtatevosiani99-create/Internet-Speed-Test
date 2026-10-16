@@ -283,8 +283,8 @@ class AnimatedGlobeView(context: Context) : View(context) {
         val elapsed = if (lastFrameNanos == 0L) 1f / 60f
             else ((now - lastFrameNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastFrameNanos = now
-        phase = (phase + (if (testing) 0.14f else 0.075f) * elapsed * 60f) % (2f * PI.toFloat())
-        globeRotation = (globeRotation + (if (testing) 2.0f else 1.05f) * elapsed * 60f) % 360f
+        phase = (phase + (if (testing) 0.084f else 0.045f) * elapsed * 60f) % (2f * PI.toFloat())
+        globeRotation = (globeRotation + (if (testing) 1.2f else 0.63f) * elapsed * 60f) % 360f
         postInvalidateOnAnimation()
     }
 
