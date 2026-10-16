@@ -251,14 +251,7 @@ class AnimatedGlobeView(context: Context) : View(context) {
         orbitPaint.clearShadowLayer()
         canvas.restore()
 
-        canvas.save()
-        canvas.rotate(56f + sin(phase * 0.42f) * 8f, cx, cy)
-        orbitPaint.color = 0x885B9FFF.toInt()
-        orbitPaint.strokeWidth = dp(1.05f)
-        orbitPaint.setShadowLayer(dp(5f), 0f, 0f, blue)
-        canvas.drawOval(cx-r*1.48f, cy-r*0.29f, cx+r*1.48f, cy+r*0.29f, orbitPaint)
-        orbitPaint.clearShadowLayer()
-        canvas.restore()
+        // Removed the separate blue orbital ring; keep the cyan orbit and globe glow.
 
         for (i in 0..5) {
             val a = phase * (0.72 + i * 0.095) + i * PI / 3.0
