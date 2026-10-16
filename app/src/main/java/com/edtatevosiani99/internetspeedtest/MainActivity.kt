@@ -125,7 +125,7 @@ class MainActivity : Activity() {
             setTextColor(cyan); gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, dp(28)))
 
-        content.addView(AnimatedGlobeView(this), LinearLayout.LayoutParams(dp(184), dp(154)).apply {
+        content.addView(AnimatedGlobeView(this), LinearLayout.LayoutParams(dp(368), dp(308)).apply {
             gravity = Gravity.CENTER; topMargin = dp(7); bottomMargin = dp(0)
         })
         status = TextView(this).apply {
