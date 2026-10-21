@@ -341,7 +341,7 @@ class MainActivity : Activity() {
                     refreshNetworkInfo()
                     val historyLine = "$date  •  ↓$downText Mbps  ↑$upText Mbps  •  ${tr("Ping: ")}${ping.roundToInt()} ms  •  ${tr("Jitter: ")}${jitter.roundToInt()} ms  •  $currentNetworkLabel"
                     val history = prefs.getString("history", "") ?: ""
-                    val updated = (listOf(historyLine) + history.split("\\n").filter { it.isNotBlank() }).joinToString("\\n")
+                    val updated = (listOf(historyLine) + history.split("\n").filter { it.isNotBlank() }).joinToString("\n")
                     prefs.edit().putString("history", updated).apply()
                     refreshHistory()
                     shareButton.isEnabled = true; shareButton.alpha = 1f
