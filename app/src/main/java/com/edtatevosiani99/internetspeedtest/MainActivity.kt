@@ -477,9 +477,13 @@ class MainActivity : Activity() {
         )
 
         val extra = mapOf(
+            "en" to mapOf(
+                "History" to "History", "About app" to "About app", "Language" to "Language", "OK" to "OK",
+                "about_message" to "Internet Speed Test\\nVersion: 1.0\\nFast and simple check of internet speed, ping, and connection stability.\\n\\nCreated by: E.Tatevosiani"
+            ),
             "ru" to mapOf(
                 "History" to "История", "About app" to "О приложении", "Language" to "Язык", "OK" to "ОК",
-                "about_message" to "Проверяйте скорость загрузки и отдачи, пинг и джиттер. Просматривайте сведения о соединении и последние результаты.\n\nВерсия 1.0",
+                "about_message" to "Internet Speed Test\nВерсия: 1.0\nБыстрая и простая проверка скорости интернета, пинга и стабильности соединения.\n\nСоздатель: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Пользуйтесь приложением без лишнего",
                 "Choose an ad-free plan" to "Выберите вариант без рекламы", "1 MONTH" to "1 МЕСЯЦ",
                 "1 YEAR" to "1 ГОД", "Ad-free for one month" to "Без рекламы в течение месяца",
@@ -505,7 +509,7 @@ class MainActivity : Activity() {
             ),
             "ka" to mapOf(
                 "History" to "ისტორია", "About app" to "აპლიკაციის შესახებ", "Language" to "ენა", "OK" to "კარგი",
-                "about_message" to "შეამოწმეთ ჩამოტვირთვისა და ატვირთვის სიჩქარე, პინგი და ჯიტერი. ნახეთ კავშირის დეტალები და ბოლო შედეგები.\n\nვერსია 1.0",
+                "about_message" to "Internet Speed Test\nვერსია: 1.0\nინტერნეტის სიჩქარის, პინგისა და კავშირის სტაბილურობის სწრაფი და მარტივი შემოწმება.\n\nშემქმნელი: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "ისიამოვნეთ უფრო სუფთა გამოცდილებით", "Choose an ad-free plan" to "აირჩიეთ რეკლამის გარეშე გეგმა",
                 "1 MONTH" to "1 თვე", "1 YEAR" to "1 წელი", "Ad-free for one month" to "რეკლამის გარეშე ერთი თვის განმავლობაში",
                 "Best value • Ad-free for one year" to "საუკეთესო არჩევანი • რეკლამის გარეშე ერთი წელი",
@@ -530,7 +534,7 @@ class MainActivity : Activity() {
             ),
             "de" to mapOf(
                 "History" to "Verlauf", "About app" to "Über die App", "Language" to "Sprache", "OK" to "OK",
-                "about_message" to "Messen Sie Download, Upload, Ping und Jitter. Sehen Sie Verbindungsdetails und letzte Testergebnisse.\n\nVersion 1.0",
+                "about_message" to "Internet Speed Test\nVersion: 1.0\nSchneller und einfacher Test von Internetgeschwindigkeit, Ping und Verbindungsstabilität.\n\nErstellt von: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Genießen Sie eine aufgeräumte Nutzung", "Choose an ad-free plan" to "Wählen Sie einen werbefreien Tarif",
                 "1 MONTH" to "1 MONAT", "1 YEAR" to "1 JAHR", "Ad-free for one month" to "Einen Monat werbefrei",
                 "Best value • Ad-free for one year" to "Bestes Angebot • Ein Jahr werbefrei", "Google Play purchase" to "Google-Play-Kauf",
@@ -553,7 +557,7 @@ class MainActivity : Activity() {
             ),
             "es" to mapOf(
                 "History" to "Historial", "About app" to "Acerca de la app", "Language" to "Idioma", "OK" to "Aceptar",
-                "about_message" to "Mide la descarga, la subida, el ping y el jitter. Consulta los detalles de conexión y los resultados recientes.\n\nVersión 1.0",
+                "about_message" to "Internet Speed Test\nVersión: 1.0\nComprobación rápida y sencilla de la velocidad de Internet, el ping y la estabilidad de la conexión.\n\nCreado por: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Disfruta de una experiencia más limpia", "Choose an ad-free plan" to "Elige un plan sin anuncios",
                 "1 MONTH" to "1 MES", "1 YEAR" to "1 AÑO", "Ad-free for one month" to "Sin anuncios durante un mes",
                 "Best value • Ad-free for one year" to "Mejor opción • Sin anuncios durante un año", "Google Play purchase" to "Compra de Google Play",
@@ -576,7 +580,7 @@ class MainActivity : Activity() {
             ),
             "fr" to mapOf(
                 "History" to "Historique", "About app" to "À propos", "Language" to "Langue", "OK" to "OK",
-                "about_message" to "Mesurez le téléchargement, l’envoi, le ping et la gigue. Consultez les détails de connexion et les résultats récents.\n\nVersion 1.0",
+                "about_message" to "Internet Speed Test\nVersion : 1.0\nVérification rapide et simple de la vitesse Internet, du ping et de la stabilité de la connexion.\n\nCréé par : E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Profitez d’une expérience plus épurée", "Choose an ad-free plan" to "Choisissez une formule sans publicité",
                 "1 MONTH" to "1 MOIS", "1 YEAR" to "1 AN", "Ad-free for one month" to "Sans publicité pendant un mois",
                 "Best value • Ad-free for one year" to "Meilleure offre • Sans publicité pendant un an", "Google Play purchase" to "Achat Google Play",
@@ -599,7 +603,7 @@ class MainActivity : Activity() {
             ),
             "it" to mapOf(
                 "History" to "Cronologia", "About app" to "Informazioni", "Language" to "Lingua", "OK" to "OK",
-                "about_message" to "Misura download, upload, ping e jitter. Consulta i dettagli della connessione e i risultati recenti.\n\nVersione 1.0",
+                "about_message" to "Internet Speed Test\nVersione: 1.0\nControllo semplice e rapido della velocità Internet, del ping e della stabilità della connessione.\n\nCreato da: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Goditi un’esperienza più pulita", "Choose an ad-free plan" to "Scegli un piano senza pubblicità",
                 "1 MONTH" to "1 MESE", "1 YEAR" to "1 ANNO", "Ad-free for one month" to "Senza pubblicità per un mese",
                 "Best value • Ad-free for one year" to "Più conveniente • Senza pubblicità per un anno", "Google Play purchase" to "Acquisto Google Play",
@@ -622,7 +626,7 @@ class MainActivity : Activity() {
             ),
             "tr" to mapOf(
                 "History" to "Geçmiş", "About app" to "Uygulama hakkında", "Language" to "Dil", "OK" to "Tamam",
-                "about_message" to "İndirme, yükleme, ping ve jitter değerlerini ölçün. Bağlantı ayrıntılarını ve son test sonuçlarını görüntüleyin.\n\nSürüm 1.0",
+                "about_message" to "Internet Speed Test\nSürüm: 1.0\nİnternet hızını, ping değerini ve bağlantı kararlılığını hızlı ve kolayca kontrol edin.\n\nGeliştirici: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Daha sade bir deneyimin keyfini çıkarın", "Choose an ad-free plan" to "Reklamsız bir plan seçin",
                 "1 MONTH" to "1 AY", "1 YEAR" to "1 YIL", "Ad-free for one month" to "Bir ay boyunca reklamsız",
                 "Best value • Ad-free for one year" to "En avantajlı • Bir yıl reklamsız", "Google Play purchase" to "Google Play satın alımı",
@@ -645,7 +649,7 @@ class MainActivity : Activity() {
             ),
             "uk" to mapOf(
                 "History" to "Історія", "About app" to "Про застосунок", "Language" to "Мова", "OK" to "Гаразд",
-                "about_message" to "Вимірюйте швидкість завантаження й передавання, пінг і джиттер. Переглядайте відомості про з’єднання та останні результати.\n\nВерсія 1.0",
+                "about_message" to "Internet Speed Test\nВерсія: 1.0\nШвидка й проста перевірка швидкості інтернету, пінгу та стабільності з’єднання.\n\nАвтор: E.Tatevosiani",
                 "Enjoy a cleaner experience" to "Користуйтеся застосунком без зайвого", "Choose an ad-free plan" to "Оберіть тариф без реклами",
                 "1 MONTH" to "1 МІСЯЦЬ", "1 YEAR" to "1 РІК", "Ad-free for one month" to "Без реклами протягом місяця",
                 "Best value • Ad-free for one year" to "Вигідно • Без реклами протягом року", "Google Play purchase" to "Покупка Google Play",
