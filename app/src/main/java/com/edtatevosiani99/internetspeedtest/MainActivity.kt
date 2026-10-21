@@ -215,57 +215,70 @@ class MainActivity : Activity() {
         if (::globeView.isInitialized) globeView.setTesting(true)
         startButton.isEnabled = false; startButton.text = tr("TESTING...")
         shareButton.isEnabled = false
-        status.text = tr("Checking latency") + " (1/5)..."
+        status.text = tr("Checking latency") + " (1/12)..."
         pingValue.text = "…"; downloadValue.text = "…"; uploadValue.text = "…"
         jitterValue.text = "…"
         thread {
             try {
-                val samples = mutableListOf<Double>()
-                for (i in 1..5) {
+                // Reuse HTTPS keep-alive connections; discard the first two warm-up
+                // requests so DNS/TLS setup does not dominate the latency estimate.
+                val latencySamples = mutableListOf<Double>()
+                for (i in 1..12) {
                     try {
                         val started = System.nanoTime()
                         val c = URL("https://speed.cloudflare.com/__down?bytes=1&check=$i").openConnection() as HttpURLConnection
                         c.connectTimeout = 7000; c.readTimeout = 7000; c.useCaches = false
                         c.setRequestProperty("Cache-Control", "no-cache")
+                        c.setRequestProperty("Connection", "keep-alive")
                         c.inputStream.use { input -> while (input.read() != -1) { } }
-                        c.disconnect()
-                        samples.add((System.nanoTime() - started) / 1_000_000.0)
-                    } catch (_: Exception) { /* Ignore failed latency sample. */ }
+                        val elapsed = (System.nanoTime() - started) / 1_000_000.0
+                        // First requests warm DNS/TLS and the connection pool.
+                        if (i > 2) latencySamples.add(elapsed)
+                    } catch (_: Exception) { /* Failed samples are excluded. */ }
                     val n = i
-                    runOnUiThread { status.text = tr("Checking latency") + " ($n/5)..." }
+                    runOnUiThread { status.text = tr("Checking latency") + " ($n/12)..." }
                 }
-                if (samples.isEmpty()) throw IllegalStateException("Could not reach the test server")
-                val ping = samples.average()
-                val jitter = if (samples.size > 1) samples.zipWithNext { a, b -> abs(b - a) }.average() else 0.0
+                if (latencySamples.size < 3) throw IllegalStateException("Could not collect enough latency samples")
+                val sortedSamples = latencySamples.sorted()
+                val ping = if (sortedSamples.size % 2 == 0)
+                    (sortedSamples[sortedSamples.size / 2 - 1] + sortedSamples[sortedSamples.size / 2]) / 2.0
+                else sortedSamples[sortedSamples.size / 2].toDouble()
+                // Mean absolute difference between consecutive valid latency samples.
+                val jitter = if (latencySamples.size > 1)
+                    latencySamples.zipWithNext { a, b -> abs(b - a) }.average() else 0.0
 
                 runOnUiThread { status.text = tr("Measuring download") + "..." }
-                val startedDown = System.nanoTime()
-                val down = URL("https://speed.cloudflare.com/__down?bytes=10000000").openConnection() as HttpURLConnection
-                down.connectTimeout = 15000; down.readTimeout = 25000; down.useCaches = false
+                // A larger transfer reduces the impact of connection setup and short bursts.
+                val down = URL("https://speed.cloudflare.com/__down?bytes=30000000").openConnection() as HttpURLConnection
+                down.connectTimeout = 15000; down.readTimeout = 45000; down.useCaches = false
                 down.setRequestProperty("Cache-Control", "no-cache")
                 var received = 0L
+                val startedDown = System.nanoTime()
                 down.inputStream.use { input ->
-                    val buffer = ByteArray(16384)
+                    val buffer = ByteArray(32768)
                     while (true) { val n = input.read(buffer); if (n < 0) break; received += n }
                 }
                 down.disconnect()
                 val downSeconds = (System.nanoTime() - startedDown) / 1_000_000_000.0
-                val downMbps = if (downSeconds > 0) received * 8.0 / downSeconds / 1_000_000.0 else 0.0
+                val downMbps = if (downSeconds > 0 && received > 0) received * 8.0 / downSeconds / 1_000_000.0 else 0.0
 
                 runOnUiThread { status.text = tr("Measuring upload") + "..." }
-                val payload = ByteArray(1_000_000)
-                val startedUp = System.nanoTime()
+                val payload = ByteArray(5_000_000)
                 val up = URL("https://speed.cloudflare.com/__up").openConnection() as HttpURLConnection
-                up.requestMethod = "POST"; up.doOutput = true; up.connectTimeout = 15000; up.readTimeout = 20000
+                up.requestMethod = "POST"; up.doOutput = true; up.connectTimeout = 15000; up.readTimeout = 30000
                 up.setRequestProperty("Content-Type", "application/octet-stream")
                 up.setFixedLengthStreamingMode(payload.size)
-                up.outputStream.use { it.write(payload) }
+                // Opening the stream establishes the request; time the actual payload write,
+                // not the wait for the server's response.
+                val output = up.outputStream
+                val startedUp = System.nanoTime()
+                output.use { it.write(payload) }
+                val upSeconds = (System.nanoTime() - startedUp) / 1_000_000_000.0
                 val response = up.responseCode
                 try {
                     val stream = if (response in 200..299) up.inputStream else up.errorStream
                     stream?.use { it.readBytes() }
                 } catch (_: Exception) { }
-                val upSeconds = (System.nanoTime() - startedUp) / 1_000_000_000.0
                 up.disconnect()
                 val upMbps = if (upSeconds > 0) payload.size * 8.0 / upSeconds / 1_000_000.0 else 0.0
                 val downText = String.format(java.util.Locale.US, "%.1f", downMbps)
