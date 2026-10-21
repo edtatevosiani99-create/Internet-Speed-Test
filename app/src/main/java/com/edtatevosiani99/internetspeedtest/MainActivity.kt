@@ -215,74 +215,119 @@ class MainActivity : Activity() {
         if (::globeView.isInitialized) globeView.setTesting(true)
         startButton.isEnabled = false; startButton.text = tr("TESTING...")
         shareButton.isEnabled = false
-        status.text = tr("Checking latency") + " (1/12)..."
-        pingValue.text = "…"; downloadValue.text = "…"; uploadValue.text = "…"
-        jitterValue.text = "…"
+        status.text = tr("Checking latency") + " (1/20)..."
+        pingValue.text = "…"; downloadValue.text = "…"; uploadValue.text = "…"; jitterValue.text = "…"
         thread {
             try {
-                // Reuse HTTPS keep-alive connections; discard the first two warm-up
-                // requests so DNS/TLS setup does not dominate the latency estimate.
+                // Cloudflare's published engine uses 20 latency requests, median latency,
+                // and increasing transfer sizes. Android HttpURLConnection cannot expose
+                // browser PerformanceResourceTiming, so this is an explicitly adapted
+                // native implementation, not a byte-for-byte port of their browser engine.
                 val latencySamples = mutableListOf<Double>()
-                for (i in 1..12) {
+                for (i in 1..20) {
                     try {
+                        val c = (URL("https://speed.cloudflare.com/__down?bytes=0&check=$i")
+                            .openConnection() as HttpURLConnection).apply {
+                            connectTimeout = 7000; readTimeout = 7000; useCaches = false
+                            setRequestProperty("Cache-Control", "no-cache")
+                            setRequestProperty("Connection", "keep-alive")
+                        }
                         val started = System.nanoTime()
-                        val c = URL("https://speed.cloudflare.com/__down?bytes=1&check=$i").openConnection() as HttpURLConnection
-                        c.connectTimeout = 7000; c.readTimeout = 7000; c.useCaches = false
-                        c.setRequestProperty("Cache-Control", "no-cache")
-                        c.setRequestProperty("Connection", "keep-alive")
-                        c.inputStream.use { input -> while (input.read() != -1) { } }
+                        val code = c.responseCode
                         val elapsed = (System.nanoTime() - started) / 1_000_000.0
-                        // First requests warm DNS/TLS and the connection pool.
-                        if (i > 2) latencySamples.add(elapsed)
-                    } catch (_: Exception) { /* Failed samples are excluded. */ }
+                        if (code in 200..299 && i > 2 && elapsed > 0.0) latencySamples.add(elapsed)
+                        c.disconnect()
+                    } catch (_: Exception) { }
                     val n = i
-                    runOnUiThread { status.text = tr("Checking latency") + " ($n/12)..." }
+                    runOnUiThread { status.text = tr("Checking latency") + " ($n/20)..." }
                 }
-                if (latencySamples.size < 3) throw IllegalStateException("Could not collect enough latency samples")
-                val sortedSamples = latencySamples.sorted()
-                val ping = if (sortedSamples.size % 2 == 0)
-                    (sortedSamples[sortedSamples.size / 2 - 1] + sortedSamples[sortedSamples.size / 2]) / 2.0
-                else sortedSamples[sortedSamples.size / 2].toDouble()
-                // Mean absolute difference between consecutive valid latency samples.
+                if (latencySamples.size < 10) throw IllegalStateException("Not enough valid latency samples")
+                val sortedLatency = latencySamples.sorted()
+                val ping = if (sortedLatency.size % 2 == 0)
+                    (sortedLatency[sortedLatency.size / 2 - 1] + sortedLatency[sortedLatency.size / 2]) / 2.0
+                else sortedLatency[sortedLatency.size / 2]
                 val jitter = if (latencySamples.size > 1)
                     latencySamples.zipWithNext { a, b -> abs(b - a) }.average() else 0.0
 
-                runOnUiThread { status.text = tr("Measuring download") + "..." }
-                // A larger transfer reduces the impact of connection setup and short bursts.
-                val down = URL("https://speed.cloudflare.com/__down?bytes=30000000").openConnection() as HttpURLConnection
-                down.connectTimeout = 15000; down.readTimeout = 45000; down.useCaches = false
-                down.setRequestProperty("Cache-Control", "no-cache")
-                var received = 0L
-                val startedDown = System.nanoTime()
-                down.inputStream.use { input ->
-                    val buffer = ByteArray(32768)
-                    while (true) { val n = input.read(buffer); if (n < 0) break; received += n }
-                }
-                down.disconnect()
-                val downSeconds = (System.nanoTime() - startedDown) / 1_000_000_000.0
-                val downMbps = if (downSeconds > 0 && received > 0) received * 8.0 / downSeconds / 1_000_000.0 else 0.0
+                // Cloudflare's documented engine ramps through 100 KB, 1 MB, 10 MB,
+                // 25 MB and larger payloads, stopping when a request set lasts >= 1 s.
+                // To avoid excessive mobile-data use, this native adaptation uses at most
+                // 3 samples per stage and caps each direction at the 10 MB stage.
+                val sizes = longArrayOf(100_000L, 1_000_000L, 10_000_000L)
+                val counts = intArrayOf(3, 3, 3)
+                val minRequestDurationMs = 10.0
+                val finishRequestDurationMs = 1000.0
 
+                fun measureDownload(): Double {
+                    val points = mutableListOf<Pair<Double, Double>>() // Mbps, duration ms
+                    for (stage in sizes.indices) {
+                        for (sample in 0 until counts[stage]) {
+                            val url = URL("https://speed.cloudflare.com/__down?bytes=${sizes[stage]}&r=${stage}_${sample}_${System.nanoTime()}")
+                            val c = (url.openConnection() as HttpURLConnection).apply {
+                                connectTimeout = 15000; readTimeout = 30000; useCaches = false
+                                setRequestProperty("Cache-Control", "no-cache")
+                            }
+                            var received = 0L
+                            val began = System.nanoTime()
+                            val code = c.responseCode
+                            if (code !in 200..299) { c.disconnect(); throw IllegalStateException("Download server returned HTTP $code") }
+                            c.inputStream.use { input ->
+                                val buffer = ByteArray(32768)
+                                while (true) { val n = input.read(buffer); if (n < 0) break; received += n }
+                            }
+                            val elapsedMs = (System.nanoTime() - began) / 1_000_000.0
+                            c.disconnect()
+                            if (elapsedMs >= minRequestDurationMs && received > 0) {
+                                points.add(Pair(received * 8.0 / (elapsedMs / 1000.0) / 1_000_000.0, elapsedMs))
+                            }
+                            if (elapsedMs >= finishRequestDurationMs) break
+                        }
+                        if (points.lastOrNull()?.second?.let { it >= finishRequestDurationMs } == true) break
+                    }
+                    if (points.isEmpty()) throw IllegalStateException("No valid download samples")
+                    return percentile(points.map { it.first }, 0.9)
+                }
+
+                fun measureUpload(): Double {
+                    val points = mutableListOf<Pair<Double, Double>>()
+                    for (stage in sizes.indices) {
+                        for (sample in 0 until counts[stage]) {
+                            val payload = ByteArray(sizes[stage].toInt())
+                            val c = (URL("https://speed.cloudflare.com/__up")
+                                .openConnection() as HttpURLConnection).apply {
+                                requestMethod = "POST"; doOutput = true
+                                connectTimeout = 15000; readTimeout = 30000; useCaches = false
+                                setRequestProperty("Content-Type", "application/octet-stream")
+                                setFixedLengthStreamingMode(payload.size)
+                            }
+                            val output = c.outputStream // establish request before timing payload transfer
+                            val began = System.nanoTime()
+                            output.use { it.write(payload) }
+                            val elapsedMs = (System.nanoTime() - began) / 1_000_000.0
+                            val code = c.responseCode
+                            try {
+                                val stream = if (code in 200..299) c.inputStream else c.errorStream
+                                stream?.use { it.readBytes() }
+                            } catch (_: Exception) { }
+                            c.disconnect()
+                            if (code !in 200..299) throw IllegalStateException("Upload server returned HTTP $code")
+                            if (elapsedMs >= minRequestDurationMs) {
+                                points.add(Pair(payload.size * 8.0 / (elapsedMs / 1000.0) / 1_000_000.0, elapsedMs))
+                            }
+                            if (elapsedMs >= finishRequestDurationMs) break
+                        }
+                        if (points.lastOrNull()?.second?.let { it >= finishRequestDurationMs } == true) break
+                    }
+                    if (points.isEmpty()) throw IllegalStateException("No valid upload samples")
+                    return percentile(points.map { it.first }, 0.9)
+                }
+
+                runOnUiThread { status.text = tr("Measuring download") + "..." }
+                val downMbps = measureDownload()
                 runOnUiThread { status.text = tr("Measuring upload") + "..." }
-                val payload = ByteArray(5_000_000)
-                val up = URL("https://speed.cloudflare.com/__up").openConnection() as HttpURLConnection
-                up.requestMethod = "POST"; up.doOutput = true; up.connectTimeout = 15000; up.readTimeout = 30000
-                up.setRequestProperty("Content-Type", "application/octet-stream")
-                up.setFixedLengthStreamingMode(payload.size)
-                // Opening the stream establishes the request; time the actual payload write,
-                // not the wait for the server's response.
-                val output = up.outputStream
-                val startedUp = System.nanoTime()
-                output.use { it.write(payload) }
-                val upSeconds = (System.nanoTime() - startedUp) / 1_000_000_000.0
-                val response = up.responseCode
-                try {
-                    val stream = if (response in 200..299) up.inputStream else up.errorStream
-                    stream?.use { it.readBytes() }
-                } catch (_: Exception) { }
-                up.disconnect()
-                val upMbps = if (upSeconds > 0) payload.size * 8.0 / upSeconds / 1_000_000.0 else 0.0
+                val upMbps = measureUpload()
                 val downText = String.format(java.util.Locale.US, "%.1f", downMbps)
-                val upText = if (response in 200..299) String.format(java.util.Locale.US, "%.1f", upMbps) else "N/A"
+                val upText = String.format(java.util.Locale.US, "%.1f", upMbps)
                 val result = "INTERNET SPEED TEST\n${tr("Ping: ")}${ping.roundToInt()} ms\n${tr("Jitter: ")}${jitter.roundToInt()} ms\n${tr("Download: ")}${downText} Mbps\n${tr("Upload: ")}${upText} Mbps"
                 val date = java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
                 runOnUiThread {
@@ -296,7 +341,7 @@ class MainActivity : Activity() {
                     refreshNetworkInfo()
                     val historyLine = "$date  •  ↓$downText Mbps  ↑$upText Mbps  •  ${tr("Ping: ")}${ping.roundToInt()} ms  •  ${tr("Jitter: ")}${jitter.roundToInt()} ms  •  $currentNetworkLabel"
                     val history = prefs.getString("history", "") ?: ""
-                    val updated = (listOf(historyLine) + history.split("\n").filter { it.isNotBlank() }).joinToString("\n")
+                    val updated = (listOf(historyLine) + history.split("\\n").filter { it.isNotBlank() }).joinToString("\\n")
                     prefs.edit().putString("history", updated).apply()
                     refreshHistory()
                     shareButton.isEnabled = true; shareButton.alpha = 1f
@@ -312,6 +357,13 @@ class MainActivity : Activity() {
                 }
             }
         }
+    }
+
+    private fun percentile(values: List<Double>, p: Double): Double {
+        if (values.isEmpty()) return 0.0
+        val sorted = values.sorted()
+        val index = kotlin.math.ceil(p.coerceIn(0.0, 1.0) * sorted.size).toInt() - 1
+        return sorted[index.coerceIn(0, sorted.lastIndex)]
     }
 
     private fun showAppMenu(anchor: View) {
