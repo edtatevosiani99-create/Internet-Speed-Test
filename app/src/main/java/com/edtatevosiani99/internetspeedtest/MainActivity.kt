@@ -236,7 +236,7 @@ class MainActivity : Activity() {
                         val code = c.responseCode
                         val elapsed = (System.nanoTime() - started) / 1_000_000.0
                         if (code in 200..299 && i > 2 && elapsed > 0.0) latencySamples.add(elapsed)
-                        c.disconnect()
+                        try { c.inputStream.use { it.readBytes() } } catch (_: Exception) { }
                     } catch (_: Exception) { }
                     val n = i
                     runOnUiThread { status.text = tr("Checking latency") + " ($n/20)..." }
@@ -268,9 +268,9 @@ class MainActivity : Activity() {
                                 setRequestProperty("Cache-Control", "no-cache")
                             }
                             var received = 0L
-                            val began = System.nanoTime()
                             val code = c.responseCode
                             if (code !in 200..299) { c.disconnect(); throw IllegalStateException("Download server returned HTTP $code") }
+                            val began = System.nanoTime()
                             c.inputStream.use { input ->
                                 val buffer = ByteArray(32768)
                                 while (true) { val n = input.read(buffer); if (n < 0) break; received += n }
