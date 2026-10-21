@@ -248,6 +248,12 @@ class MainActivity : Activity() {
                 else sortedLatency[sortedLatency.size / 2]
                 val jitter = if (latencySamples.size > 1)
                     latencySamples.zipWithNext { a, b -> abs(b - a) }.average() else 0.0
+                // Publish latency as soon as it is measured instead of waiting for the whole test.
+                runOnUiThread {
+                    pingValue.text = ping.roundToInt().toString()
+                    jitterValue.text = jitter.roundToInt().toString()
+                    status.text = tr("Measuring download") + "..."
+                }
 
                 // Cloudflare's documented engine ramps through 100 KB, 1 MB, 10 MB,
                 // 25 MB and larger payloads, stopping when a request set lasts >= 1 s.
@@ -278,7 +284,13 @@ class MainActivity : Activity() {
                             val elapsedMs = (System.nanoTime() - began) / 1_000_000.0
                             c.disconnect()
                             if (elapsedMs >= minRequestDurationMs && received > 0) {
-                                points.add(Pair(received * 8.0 / (elapsedMs / 1000.0) / 1_000_000.0, elapsedMs))
+                                val currentMbps = received * 8.0 / (elapsedMs / 1000.0) / 1_000_000.0
+                                points.add(Pair(currentMbps, elapsedMs))
+                                val liveText = String.format(java.util.Locale.US, "%.1f", percentile(points.map { it.first }, 0.9))
+                                runOnUiThread {
+                                    downloadValue.text = liveText
+                                    status.text = tr("Measuring download") + " • " + (sample + 1) + "/" + counts[stage]
+                                }
                             }
                             if (elapsedMs >= finishRequestDurationMs) break
                         }
@@ -312,7 +324,13 @@ class MainActivity : Activity() {
                             c.disconnect()
                             if (code !in 200..299) throw IllegalStateException("Upload server returned HTTP $code")
                             if (elapsedMs >= minRequestDurationMs) {
-                                points.add(Pair(payload.size * 8.0 / (elapsedMs / 1000.0) / 1_000_000.0, elapsedMs))
+                                val currentMbps = payload.size * 8.0 / (elapsedMs / 1000.0) / 1_000_000.0
+                                points.add(Pair(currentMbps, elapsedMs))
+                                val liveText = String.format(java.util.Locale.US, "%.1f", percentile(points.map { it.first }, 0.9))
+                                runOnUiThread {
+                                    uploadValue.text = liveText
+                                    status.text = tr("Measuring upload") + " • " + (sample + 1) + "/" + counts[stage]
+                                }
                             }
                             if (elapsedMs >= finishRequestDurationMs) break
                         }
@@ -324,7 +342,10 @@ class MainActivity : Activity() {
 
                 runOnUiThread { status.text = tr("Measuring download") + "..." }
                 val downMbps = measureDownload()
-                runOnUiThread { status.text = tr("Measuring upload") + "..." }
+                runOnUiThread {
+                    downloadValue.text = String.format(java.util.Locale.US, "%.1f", downMbps)
+                    status.text = tr("Measuring upload") + "..."
+                }
                 val upMbps = measureUpload()
                 val downText = String.format(java.util.Locale.US, "%.1f", downMbps)
                 val upText = String.format(java.util.Locale.US, "%.1f", upMbps)
