@@ -479,7 +479,7 @@ class MainActivity : Activity() {
         val extra = mapOf(
             "en" to mapOf(
                 "History" to "History", "About app" to "About app", "Language" to "Language", "OK" to "OK",
-                "about_message" to "Internet Speed Test\\nVersion: 1.0\\nFast and simple check of internet speed, ping, and connection stability.\\n\\nCreated by: E.Tatevosiani"
+                "about_message" to "Internet Speed Test\nVersion: 1.0\nFast and simple check of internet speed, ping, and connection stability.\n\nCreated by: E.Tatevosiani"
             ),
             "ru" to mapOf(
                 "History" to "История", "About app" to "О приложении", "Language" to "Язык", "OK" to "ОК",
