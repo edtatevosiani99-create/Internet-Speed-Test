@@ -387,6 +387,52 @@ class MainActivity : Activity() {
         return sorted[index.coerceIn(0, sorted.lastIndex)]
     }
 
+    private class NoAdsCircleSpan(
+        private val diameterPx: Int,
+        private val textSizePx: Int
+    ) : android.text.style.ReplacementSpan() {
+        override fun getSize(
+            paint: android.graphics.Paint,
+            text: CharSequence,
+            start: Int,
+            end: Int,
+            fm: android.graphics.Paint.FontMetricsInt?
+        ): Int = diameterPx
+
+        override fun draw(
+            canvas: android.graphics.Canvas,
+            text: CharSequence,
+            start: Int,
+            end: Int,
+            x: Float,
+            top: Int,
+            y: Int,
+            bottom: Int,
+            paint: android.graphics.Paint
+        ) {
+            val cx = x + diameterPx / 2f
+            val cy = (top + bottom) / 2f
+            val oldColor = paint.color
+            val oldStyle = paint.style
+            val oldTextSize = paint.textSize
+            val oldTypeface = paint.typeface
+            paint.color = Color.rgb(225, 25, 45)
+            paint.style = android.graphics.Paint.Style.FILL
+            canvas.drawCircle(cx, cy, diameterPx / 2f, paint)
+            paint.color = Color.WHITE
+            paint.textSize = textSizePx.toFloat()
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            paint.textAlign = android.graphics.Paint.Align.CENTER
+            val label = "NO ADS"
+            canvas.drawText(label, cx, cy - (paint.ascent() + paint.descent()) / 2f, paint)
+            paint.color = oldColor
+            paint.style = oldStyle
+            paint.textSize = oldTextSize
+            paint.typeface = oldTypeface
+            paint.textAlign = android.graphics.Paint.Align.LEFT
+        }
+    }
+
     private fun showAppMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
         // Keep the menu in the requested order: Traffic, History, Language, About, No Ads.
@@ -394,9 +440,9 @@ class MainActivity : Activity() {
         menu.menu.add(0, 1, 1, "🕘  ${tr("History")}")
         menu.menu.add(0, 4, 2, "🌐  ${tr("Language")}")
         menu.menu.add(0, 2, 3, "ℹ️  ${tr("About app")}")
-        val noAdsTitle = android.text.SpannableString("🔴  NO ADS")
-        noAdsTitle.setSpan(android.text.style.StyleSpan(Typeface.BOLD), 0, noAdsTitle.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        noAdsTitle.setSpan(android.text.style.RelativeSizeSpan(1.15f), 0, noAdsTitle.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        // Render NO ADS as bold white lettering centered inside a solid red circle.
+        val noAdsTitle = android.text.SpannableString("NO ADS")
+        noAdsTitle.setSpan(NoAdsCircleSpan(dp(44), dp(9)), 0, noAdsTitle.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         menu.menu.add(0, 3, 4, noAdsTitle)
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
