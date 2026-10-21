@@ -389,11 +389,15 @@ class MainActivity : Activity() {
 
     private fun showAppMenu(anchor: View) {
         val menu = PopupMenu(this, anchor)
-        menu.menu.add(0, 1, 0, "🕘  ${tr("History")}")
-        menu.menu.add(0, 5, 1, "📊  ${tr("Traffic")}")
-        menu.menu.add(0, 2, 2, "ℹ️  ${tr("About app")}")
-        menu.menu.add(0, 3, 3, "✨  No Ads")
-        menu.menu.add(0, 4, 4, "🌐  ${tr("Language")}")
+        // Keep the menu in the requested order: Traffic, History, Language, About, No Ads.
+        menu.menu.add(0, 5, 0, "📊  ${tr("Traffic")}")
+        menu.menu.add(0, 1, 1, "🕘  ${tr("History")}")
+        menu.menu.add(0, 4, 2, "🌐  ${tr("Language")}")
+        menu.menu.add(0, 2, 3, "ℹ️  ${tr("About app")}")
+        val noAdsTitle = android.text.SpannableString("🔴  NO ADS")
+        noAdsTitle.setSpan(android.text.style.StyleSpan(Typeface.BOLD), 0, noAdsTitle.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        noAdsTitle.setSpan(android.text.style.RelativeSizeSpan(1.15f), 0, noAdsTitle.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        menu.menu.add(0, 3, 4, noAdsTitle)
         menu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> showHistoryDialog()
